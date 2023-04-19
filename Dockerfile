@@ -1,4 +1,4 @@
-FROM archlinux:base as ground
+FROM --platform=$BUILDPLATFORM archlinux:base as ground
 
 # USER root
 

@@ -1,5 +1,14 @@
 FROM --platform=$BUILDPLATFORM archlinux:base as ground
 
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VCS_URL
+ARG VERSION
+ARG TIMEZONE
+
 # USER root
 
 # Add "app" user with "sudo" access
@@ -122,6 +131,16 @@ RUN cargo build --release \
 # ------- {{ build.end }}
 
 FROM base AS runtime
+
+LABEL org.label-schema.build-date=$BUILD_DATE \
+    org.label-schema.name="VapourSynth-Av1an" \
+    org.label-schema.description="Docker Images for Av1an with VapourSynth support" \
+    org.label-schema.url="https://rokibhasansagar.github.io" \
+    org.label-schema.vcs-ref=$VCS_REF \
+    org.label-schema.vcs-url=$VCS_URL \
+    org.label-schema.vendor="Rokib Hasan Sagar" \
+    org.label-schema.version=$VERSION \
+    org.label-schema.schema-version="1.0"
 
 LABEL maintainer="fr3akyphantom <rokibhasansagar2014@outlook.com>"
 

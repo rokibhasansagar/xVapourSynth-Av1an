@@ -95,11 +95,11 @@ RUN <<-'EOL'
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	sudo ldconfig 2>/dev/null
 	echo -e "[>] PostPlugs PacCache Investigation"
-	find /home/app/.cache/paru/clone/ -maxdepth 4 -iname *."pkg.tar.zst"* -type f | xargs -i sudo cp -f {} /var/cache/pacman/pkg/
+	find /home/app/.cache/paru/clone/ -maxdepth 4 -iname *."pkg.tar.zst"* -type f | xargs -i sudo cp -vf {} /var/cache/pacman/pkg/
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst
 	echo -e "[>] PostPlugs ParuCache Investigation"
-	sudo du -sh /home/app/.cache/paru/*
+	sudo du -sh /home/app/.cache/paru/* /home/app/.cache/paru/clone/*
 	echo -e "[i] All Installed AppList:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | grep -v 'vapoursynth-' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	echo -e "[i] All Installed Vapoursynth Plugins:"

@@ -49,6 +49,10 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,enable=true,prefix=sha-,format=short
+            type=raw,value={{date 'YY.MM.DDDD.HHmm' tz='Asia/Dhaka'}},enable=true
+          labels: |
+            maintainer="fr3akyphantom <rokibhasansagar2014@outlook.com>"
+            org.opencontainers.image.licenses=MIT
       -
         name: Cache Docker layers
         uses: actions/cache@v3

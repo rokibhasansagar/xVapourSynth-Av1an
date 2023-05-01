@@ -23,9 +23,6 @@ jobs:
         with:
           ref: 'main'
       -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      -
         name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v2
@@ -44,18 +41,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Docker meta
+        name: Docker Metadata action
         id: docker_meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/vapoursynth-av1an
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/vapoursynth-av1an-rt
           tags: |
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,enable=true,prefix=sha-,format=short
       -
         name: Cache Docker layers
         uses: actions/cache@v3
@@ -72,7 +65,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: vapoursynth-av1an:latest,${{ steps.docker_meta.outputs.tags }}
+          tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max

@@ -20,6 +20,7 @@ WORKDIR /tmp
 RUN <<-'EOL'
 	set -ex
 	sudo pacman -Syu --noconfirm 2>/dev/null
+	export PATH="/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/bin"
 	echo -e "[+] List of PreInstalled Packages:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	echo -e "[+] Installing yay-bin & paru-bin (pacman helpers)"
@@ -57,7 +58,7 @@ RUN <<-'EOL'
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )
 	echo -e "[+] rav1e-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild rav1e-git
-	sed -i -e '/pkgver=/c\pkgver=0.6.4.r141.gc3b7754f' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/cargo fetch/i\  sed -i 's|version = \"0.6.1\"|version = \"0.6.4\"|g' Cargo.toml" -e '/cargo fetch/c\  cargo fetch --target "x86_64-unknown-linux-gnu" && cargo update' -e '/cargo install/,/--path/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/rav1e"\n  install -Dm755 "target/x86_64-unknown-linux-gnu/release/rav1e" -t "$pkgdir/usr/bin"\n' -e '/cargo cinstall/,/--prefix/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo cinstall --target "x86_64-unknown-linux-gnu" --release --all-targets \\\n    --destdir "$pkgdir" --prefix "/usr"' rav1e-git/PKGBUILD
+	sed -i -e '/pkgver=/c\pkgver=0.6.4.r146.ga54fa184' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/cargo fetch/i\  sed -i "s|version = \"0.6.1\"|version = \"0.6.4\"|g" Cargo.toml' -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo install/,/--path/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/rav1e"\n  install -Dm755 "target/x86_64-unknown-linux-gnu/release/rav1e" -t "$pkgdir/usr/bin"\n' -e '/cargo cinstall/,/--prefix/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo cinstall --target "x86_64-unknown-linux-gnu" --release --all-targets \\\n    --destdir "$pkgdir" --prefix "/usr"' rav1e-git/PKGBUILD
 	cd ./rav1e-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] x265-git Installation with makepkg"
@@ -70,12 +71,6 @@ RUN <<-'EOL'
 	cd ./svt-av1-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] ffmpeg version check"
 	( ffmpeg -hide_banner -version || true )
-	echo -e "[+] av1an-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild av1an-git
-	sed -i -e '/pkgver=/c\pkgver=r2282.14875b4' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/cargo fetch/c\  cargo fetch --target "x86_64-unknown-linux-gnu" && cargo update' -e '/cargo build/c\  RUSTUP_TOOLCHAIN=stable RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/av1an"' -e 's|target/release/av1an|target/x86_64-unknown-linux-gnu/release/av1an|g' av1an-git/PKGBUILD
-	cd ./av1an-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	echo -e "[i] av1an version check"
-	( av1an --version || true )
 	echo -e "[-] /tmp directory cleanup"
 	cd /tmp && rm -rf -- *
 	echo -e "[+] List of All Packages After Base Installation:"
@@ -84,16 +79,16 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	cd /tmp && yes | CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --needed ${PARU_OPTS} vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-mvsfunc-git vapoursynth-plugin-vsdeband-git vapoursynth-tools-getnative-git vapoursynth-plugin-vskernels-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsscale-git vapoursynth-plugin-vsutil-git vapoursynth-plugin-vstools-git vapoursynth-plugin-vsdenoise-git vapoursynth-plugin-neo_f3kdb-git
-	libtool --finish /usr/lib/vapoursynth &>/dev/null
-	echo -e "[i] Build vapoursynth-plugin-havsfunc-git with backdated commit sha"
-	( yes | sudo pacman -Rdd vapoursynth-plugin-havsfunc 2>/dev/null || true )
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild vapoursynth-plugin-havsfunc-git
-	sed -i '/pkgver() {/i\prepare() {\n  cd "${_plug}"\n  git reset --hard 7f0a9a7\n}\n' vapoursynth-plugin-havsfunc-git/PKGBUILD
-	cd ./vapoursynth-plugin-havsfunc-git
-	yes | CFLAGS="${CFLAGS} -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough" CXXFLAGS="${CXXFLAGS} -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough" paru -Ui --needed ${PARU_OPTS} --mflags="--noprogressbar --force" && cd ..
+	cd /tmp && yes | CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --needed ${PARU_OPTS} onetbb vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-vstools-git vapoursynth-plugin-vsdehalo-git vapoursynth-plugin-vsdeband-git vapoursynth-plugin-neo_f3kdb-git vapoursynth-plugin-havsfunc-git vapoursynth-tools-getnative-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsmasktools-git
+	yes | sudo pacman -Rdd vapoursynth-plugin-vsakarin-git
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	sudo ldconfig 2>/dev/null
+	echo -e "[+] av1an-git Installation with makepkg"
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild av1an-git
+	sed -i -e '/pkgver=/c\pkgver=r2282.14875b4' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/cargo fetch/i\  sed -i -e "/27d614f23f34f7b5165a77dc1591f497e2518f9cec4b4f4b92bfc4dc6cf7a190/d" Cargo.toml' -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo build/c\  RUSTUP_TOOLCHAIN=stable RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/av1an"' -e 's|target/release/av1an|target/x86_64-unknown-linux-gnu/release/av1an|g' av1an-git/PKGBUILD
+	cd ./av1an-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	echo -e "[i] av1an version check"
+	( av1an --version || true )
 	echo -e "[>] PostPlugs PacCache Investigation"
 	find /home/app/.cache/paru/clone/ -maxdepth 4 -iname *."pkg.tar.zst"* -type f | xargs -i sudo cp -vf {} /var/cache/pacman/pkg/
 	sudo du -sh /var/cache/pacman/pkg
@@ -107,6 +102,9 @@ RUN <<-'EOL'
 	ls -lAog /usr/lib/vapoursynth/*.so 2>/dev/null
 	echo -e "[i] Home directory Investigation"
 	sudo du -sh ~/\.[a-z]* 2>/dev/null
+	echo -e "[i] Av1an Investigation"
+	( av1an --version || true )
+	( rav1e --version || true )
 	echo -e "[<] Cleanup"
 	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null
 	( sudo pacman -Rdd cmake ninja clang nasm yasm rust cargo-c compiler-rt llvm-libs --noconfirm 2>/dev/null || true )

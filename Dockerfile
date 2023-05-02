@@ -84,7 +84,7 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	cd /tmp && CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-mvsfunc-git vapoursynth-plugin-vsdeband-git vapoursynth-tools-getnative-git vapoursynth-plugin-vskernels-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsscale-git vapoursynth-plugin-vsutil-git vapoursynth-plugin-vstools-git vapoursynth-plugin-vsdenoise-git vapoursynth-plugin-neo_f3kdb-git
+	cd /tmp && yes | CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --needed ${PARU_OPTS} vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-mvsfunc-git vapoursynth-plugin-vsdeband-git vapoursynth-tools-getnative-git vapoursynth-plugin-vskernels-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsscale-git vapoursynth-plugin-vsutil-git vapoursynth-plugin-vstools-git vapoursynth-plugin-vsdenoise-git vapoursynth-plugin-neo_f3kdb-git
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	echo -e "[i] Build vapoursynth-plugin-havsfunc-git with backdated commit sha"
 	( yes | sudo pacman -Rdd vapoursynth-plugin-havsfunc 2>/dev/null || true )
@@ -116,7 +116,7 @@ EOL
 VOLUME ["/videos"]
 WORKDIR /videos
 
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "/usr/bin/bash" ]
 
 
 # FROM base AS slim

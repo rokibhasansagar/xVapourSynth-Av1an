@@ -64,7 +64,7 @@ RUN <<-'EOL'
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] x265-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild x265-git
-	sed -i -e '/pkgver=/c\pkgver=3.5.r101.g3dae0c3cc' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/build() {/a\    export CFLAGS+=' -Wno-unused-parameter -Wno-unused-result' CXXFLAGS+=' -Wno-unused-parameter -Wno-unused-result'" -e '/-Wno-dev/i\        -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy \\' -e '/EXTRA_LINK_FLAGS/a\        -DENABLE_CLI=ON \\' -e "/build() {/i\prepare() {\n  sed -i 's|X265_BUILD 207|X265_BUILD 199|g' x265_git/source/CMakeLists.txt\n}\n" x265-git/PKGBUILD
+	sed -i -e '/pkgver=/c\pkgver=3.5.r101.g3dae0c3cc' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/build() {/a\    export CFLAGS+=' -Wno-unused-parameter -Wno-unused-result' CXXFLAGS+=' -Wno-unused-parameter -Wno-unused-result'" -e '/-Wno-dev/i\        -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy \\' -e '/EXTRA_LINK_FLAGS/a\        -DENABLE_CLI=ON \\' -e "/build() {/i\prepare() {\n  sed -i '/set(X265_BUILD 2[0-9][0-9])/c\set(X265_BUILD 199)' x265_git/source/CMakeLists.txt\n}\n" x265-git/PKGBUILD
 	cd ./x265-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] svt-av1-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild svt-av1-git

@@ -18,8 +18,7 @@ WORKDIR /tmp
 
 # Update pacman database and install yay and paru helpers
 RUN <<-'EOL'
-	set -eo pipefail
-	set -x
+	set -ex
 	sudo pacman -Syu --noconfirm 2>/dev/null
 	export PATH="/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/bin"
 	echo -e "[+] List of PreInstalled Packages:"

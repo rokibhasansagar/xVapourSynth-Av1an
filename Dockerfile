@@ -18,7 +18,8 @@ WORKDIR /tmp
 
 # Update pacman database and install yay and paru helpers
 RUN <<-'EOL'
-	set -ex
+	set -eo pipefail
+	set -x
 	sudo pacman -Syu --noconfirm 2>/dev/null
 	export PATH="/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/bin"
 	echo -e "[+] List of PreInstalled Packages:"
@@ -87,8 +88,9 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild av1an-git
 	sed -i -e '/pkgver=/c\pkgver=r2282.14875b4' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/cargo fetch/i\  sed -i -e "/27d614f23f34f7b5165a77dc1591f497e2518f9cec4b4f4b92bfc4dc6cf7a190/d" Cargo.toml' -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo build/c\  RUSTUP_TOOLCHAIN=stable RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/av1an"' -e 's|target/release/av1an|target/x86_64-unknown-linux-gnu/release/av1an|g' av1an-git/PKGBUILD
 	cd ./av1an-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	echo -e "[i] av1an version check"
-	( av1an --version || true )
+	echo -e "[i] rAV1e and Av1an Investigation"
+	rav1e --version
+	av1an --version
 	echo -e "[>] PostPlugs PacCache Investigation"
 	find /home/app/.cache/paru/clone/ -maxdepth 4 -iname *."pkg.tar.zst"* -type f | xargs -i sudo cp -vf {} /var/cache/pacman/pkg/
 	sudo du -sh /var/cache/pacman/pkg
@@ -102,9 +104,6 @@ RUN <<-'EOL'
 	ls -lAog /usr/lib/vapoursynth/*.so 2>/dev/null
 	echo -e "[i] Home directory Investigation"
 	sudo du -sh ~/\.[a-z]* 2>/dev/null
-	echo -e "[i] Av1an Investigation"
-	( av1an --version || true )
-	( rav1e --version || true )
 	echo -e "[<] Cleanup"
 	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null
 	( sudo pacman -Rdd cmake ninja clang nasm yasm rust cargo-c compiler-rt llvm-libs --noconfirm 2>/dev/null || true )

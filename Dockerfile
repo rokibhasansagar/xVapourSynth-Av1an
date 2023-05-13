@@ -58,7 +58,7 @@ RUN <<-'EOL'
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )
 	echo -e "[+] rav1e-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild rav1e-git
-	sed -i -e '/pkgver=/c\pkgver=0.6.5.r147.g6529bdca' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/cargo fetch/i\  sed -i -z 's|name = \"rav1e\"\\\nversion = \"0.6.1\"|name = \"rav1e\"\\\nversion = \"0.6.5\"|g' Cargo.toml Cargo.lock" -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo install/,/--path/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/rav1e"\n  install -Dm755 "target/x86_64-unknown-linux-gnu/release/rav1e" -t "$pkgdir/usr/bin"\n' -e '/cargo cinstall/,/--prefix/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo cinstall --target "x86_64-unknown-linux-gnu" --release --all-targets \\\n    --destdir "$pkgdir" --prefix "/usr"' rav1e-git/PKGBUILD
+	sed -i -e '/pkgver=/c\pkgver=0.6.5.r148.g462c3441' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/cargo fetch/i\  sed -i -z 's|name = \"rav1e\"\\\nversion = \"0.6.1\"|name = \"rav1e\"\\\nversion = \"0.6.5\"|g' Cargo.toml Cargo.lock" -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo install/,/--path/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/rav1e"\n  install -Dm755 "target/x86_64-unknown-linux-gnu/release/rav1e" -t "$pkgdir/usr/bin"\n' -e '/cargo cinstall/,/--prefix/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo cinstall --target "x86_64-unknown-linux-gnu" --release --all-targets \\\n    --destdir "$pkgdir" --prefix "/usr"' rav1e-git/PKGBUILD
 	cd ./rav1e-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] x265-git Installation with makepkg"
@@ -67,7 +67,7 @@ RUN <<-'EOL'
 	cd ./x265-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] svt-av1-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild svt-av1-git
-	sed -i -e '/pkgver=/c\pkgver=1.5.0.r0.gea296ef3' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/-DCMAKE_BUILD_TYPE:STRING/d' -e '/-DCMAKE_INSTALL_PREFIX:PATH/d' -e '/cmake -B build -S SVT-AV1/a        -DCMAKE_BUILD_TYPE=Release -DENABLE_AVX512=ON -DNATIVE=ON -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS=ON \\' svt-av1-git/PKGBUILD
+	sed -i -e '/pkgver=/c\pkgver=1.5.0.r1.g3d5a18e0' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/-DCMAKE_BUILD_TYPE:STRING/d' -e '/-DCMAKE_INSTALL_PREFIX:PATH/d' -e '/cmake -B build -S SVT-AV1/a        -DCMAKE_BUILD_TYPE=Release -DENABLE_AVX512=ON -DNATIVE=ON -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS=ON \\' svt-av1-git/PKGBUILD
 	cd ./svt-av1-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] ffmpeg version check"
 	( ffmpeg -hide_banner -version || true )
@@ -85,7 +85,7 @@ RUN <<-'EOL'
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] av1an-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild av1an-git
-	sed -i -e '/pkgver=/c\pkgver=r2282.14875b4' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/cargo fetch/i\  sed -i -e "/27d614f23f34f7b5165a77dc1591f497e2518f9cec4b4f4b92bfc4dc6cf7a190/d" Cargo.toml' -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo build/c\  RUSTUP_TOOLCHAIN=stable RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/av1an"' -e 's|target/release/av1an|target/x86_64-unknown-linux-gnu/release/av1an|g' av1an-git/PKGBUILD
+	sed -i -e '/pkgver=/c\pkgver=r2286.0151c8d' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/cargo fetch/i\  sed -i -e "/27d614f23f34f7b5165a77dc1591f497e2518f9cec4b4f4b92bfc4dc6cf7a190/d" Cargo.toml 2>/dev/null' -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo build/c\  RUSTUP_TOOLCHAIN=stable RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/av1an"' -e 's|target/release/av1an|target/x86_64-unknown-linux-gnu/release/av1an|g' av1an-git/PKGBUILD
 	cd ./av1an-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] rAV1e and Av1an Investigation"
 	rav1e --version

@@ -58,7 +58,7 @@ RUN <<-'EOL'
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )
 	echo -e "[+] rav1e-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild rav1e-git
-	sed -i -e '/pkgver=/c\pkgver=0.6.5.r148.g462c3441' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/cargo fetch/i\  sed -i -z 's|name = \"rav1e\"\\\nversion = \"0.6.1\"|name = \"rav1e\"\\\nversion = \"0.6.5\"|g' Cargo.toml Cargo.lock" -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo install/,/--path/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/rav1e"\n  install -Dm755 "target/x86_64-unknown-linux-gnu/release/rav1e" -t "$pkgdir/usr/bin"\n' -e '/cargo cinstall/,/--prefix/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo cinstall --target "x86_64-unknown-linux-gnu" --release --all-targets \\\n    --destdir "$pkgdir" --prefix "/usr"' rav1e-git/PKGBUILD
+	sed -i -e '/pkgver=/c\pkgver=0.6.6.r186.gb26b1431' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/cargo fetch/i\  sed -i -z 's|name = \"rav1e\"\\\nversion = \"0.6.1\"|name = \"rav1e\"\\\nversion = \"0.6.6\"|g' Cargo.toml Cargo.lock" -e '/cargo fetch/c\  cargo update && cargo fetch --target "x86_64-unknown-linux-gnu"' -e '/cargo install/,/--path/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo build --target "x86_64-unknown-linux-gnu" --release\n\n  strip "target/x86_64-unknown-linux-gnu/release/rav1e"\n  install -Dm755 "target/x86_64-unknown-linux-gnu/release/rav1e" -t "$pkgdir/usr/bin"\n' -e '/cargo cinstall/,/--prefix/c\  RUSTFLAGS="$RUSTFLAGS -C target-cpu=native" LDFLAGS+=" -lgit2" \\\n    cargo cinstall --target "x86_64-unknown-linux-gnu" --release --all-targets \\\n    --destdir "$pkgdir" --prefix "/usr"' rav1e-git/PKGBUILD
 	cd ./rav1e-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] x265-git Installation with makepkg"
@@ -67,7 +67,7 @@ RUN <<-'EOL'
 	cd ./x265-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] svt-av1-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild svt-av1-git
-	sed -i -e '/pkgver=/c\pkgver=1.5.0.r1.g3d5a18e0' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/-DCMAKE_BUILD_TYPE:STRING/d' -e '/-DCMAKE_INSTALL_PREFIX:PATH/d' -e '/cmake -B build -S SVT-AV1/a        -DCMAKE_BUILD_TYPE=Release -DENABLE_AVX512=ON -DNATIVE=ON -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS=ON \\' svt-av1-git/PKGBUILD
+	sed -i -e '/pkgver=/c\pkgver=1.5.0.r10.g16c2536a' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e '/-DCMAKE_BUILD_TYPE:STRING/d' -e '/-DCMAKE_INSTALL_PREFIX:PATH/d' -e '/cmake -B build -S SVT-AV1/a        -DCMAKE_BUILD_TYPE=Release -DENABLE_AVX512=ON -DNATIVE=ON -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS=ON \\' svt-av1-git/PKGBUILD
 	cd ./svt-av1-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] ffmpeg version check"
 	( ffmpeg -hide_banner -version || true )

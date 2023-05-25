@@ -52,7 +52,7 @@ RUN <<-'EOL'
 	sed -i -e '/pkgver=/c\pkgver=33040.83500ccf3' -e '/pkgrel=/c\pkgrel=3' -e '/conflicts=/d' -e "/build() {/i\prepare() {\n  export CFLAGS+=' -Wno-unused-parameter -Wno-unused-variable -Wno-implicit-function-declaration -Wno-unused-result'\n  export CXXFLAGS+=' -Wno-unused-parameter -Wno-unused-variable -Wno-implicit-function-declaration -Wno-unused-result'\n  sed -i 's/-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0/-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2/g' \${pkgname%-git}/build/cmake/aom_configure.cmake\n}\n" aom-av1-lavish-git/PKGBUILD
 	cd ./aom-av1-lavish-git && GITFLAGS="--filter=tree:0" paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] ffmpeg and vapoursynth tools Installation with pacman"
-	cd /tmp/ && paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg vapoursynth ffms2 mkvtoolnix-cli vapoursynth-plugin-lsmashsource numactl
+	cd /tmp/ && paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-git && paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli vapoursynth-plugin-lsmashsource numactl
 	sudo ldconfig 2>/dev/null
 	echo -e "[-] Removing x265, svt-av1 & rav1e in order to install latest version"
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )

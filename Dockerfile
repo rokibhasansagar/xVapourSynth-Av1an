@@ -55,9 +55,16 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && mkdir -p aom-av1-lavish-git
 	curl -sL "https://gist.github.com/${custPKGRoot}/aom-av1-lavish-git.PKGBUILD" >aom-av1-lavish-git/PKGBUILD
 	cd ./aom-av1-lavish-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	echo -e "[+] vapoursynth, ffmpeg and other tools Installation with pacman"
-	cd /tmp/ && paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth ffmpeg ffms2 mkvtoolnix-cli vapoursynth-plugin-lsmashsource numactl
+	echo -e "[+] vapoursynth-git, ffmpeg and other tools Installation with pacman"
+	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
+	sudo pacman -Rdd zimg --noconfirm 2>/dev/null
+	cd /home/app/.cache/paru/clone/ && mkdir -p zimg-git
+	curl -sL "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=zimg-git" | sed "/'zimg'/d" >zimg-git/PKGBUILD
+	cd ./zimg-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
+	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-git vapoursynth-plugin-lsmashsource-git
 	sudo ldconfig 2>/dev/null
+	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.11/site-packages &>/dev/null
+	( vspipe --version || true )
 	echo -e "[-] Removing x265, svt-av1 & rav1e in order to install latest version"
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )
 	echo -e "[+] rav1e-git Installation with makepkg"

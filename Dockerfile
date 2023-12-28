@@ -91,11 +91,21 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	cd /tmp && CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --noconfirm --needed ${PARU_OPTS} onetbb vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-vstools-git vapoursynth-plugin-vsdehalo-git vapoursynth-plugin-vsdeband-git vapoursynth-plugin-neo_f3kdb-git vapoursynth-plugin-neo_fft3dfilter-git vapoursynth-plugin-havsfunc-git vapoursynth-tools-getnative-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-bm3dcuda-cpu-git vapoursynth-plugin-wnnm-git vapoursynth-plugin-knlmeanscl-git vapoursynth-plugin-nlm-git vapoursynth-plugin-retinex-git vapoursynth-plugin-eedi3m-git vapoursynth-plugin-znedi3-git vapoursynth-plugin-ttempsmooth-git vapoursynth-plugin-mvtools_sf-git
+	cd /tmp && CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --noconfirm --needed ${PARU_OPTS} onetbb vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-vstools-git vapoursynth-plugin-bestsource-git vapoursynth-plugin-imwri-git vapoursynth-plugin-vsdehalo-git vapoursynth-plugin-vsdeband-git vapoursynth-plugin-neo_f3kdb-git vapoursynth-plugin-neo_fft3dfilter-git vapoursynth-plugin-havsfunc-git vapoursynth-tools-getnative-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-bm3dcuda-cpu-git vapoursynth-plugin-knlmeanscl-git vapoursynth-plugin-nlm-git vapoursynth-plugin-retinex-git vapoursynth-plugin-eedi3m-git vapoursynth-plugin-znedi3-git vapoursynth-plugin-ttempsmooth-git vapoursynth-plugin-mvtools_sf-git
 	( sudo pacman -Rdd vapoursynth-plugin-vsakarin-git --noconfirm 2>/dev/null || true )
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild vapoursynth-plugin-vsakarin-git
 	sed -i -e '/prepare()/a\  sed -i "152,154d" ${_plug}/expr2/reactor/LLVMJIT.cpp && if grep -q "\-x86-asm-syntax=intel" ${_plug}/expr2/reactor/LLVMJIT.cpp; then echo "VSAkarin Patch Failed"; fi' vapoursynth-plugin-vsakarin-git/PKGBUILD
 	cd ./vapoursynth-plugin-vsakarin-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	libtool --finish /usr/lib/vapoursynth &>/dev/null
+	sudo ldconfig 2>/dev/null
+	echo -e "[+] vapoursynth-plugin-{bmdegrain,wnnm}-git Installation with makepkg"
+	export custPlugPKGRoot="rokibhasansagar/560defd34555c9f7652523377e96adff/raw/78562c0017473a75e283148e05b38b176853719d"
+	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-bmdegrain-git
+	curl -sL "https://gist.github.com/${custPlugPKGRoot}/vapoursynth-plugin-bmdegrain-git.PKGBUILD" >vapoursynth-plugin-bmdegrain-git/PKGBUILD
+	cd ./vapoursynth-plugin-bmdegrain-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-wnnm-git
+	curl -sL "https://gist.github.com/${custPlugPKGRoot}/vapoursynth-plugin-wnnm-git.PKGBUILD" >vapoursynth-plugin-wnnm-git/PKGBUILD
+	cd ./vapoursynth-plugin-wnnm-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] av1an-git Installation with makepkg"

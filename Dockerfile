@@ -40,7 +40,7 @@ RUN <<-'EOL'
 	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c zip unzip p7zip
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
-	export custPKGRoot="rokibhasansagar/46d764782ad15bbf546ad694cc820b45/raw/de9dbdf92a677c91d2c18fbe90f5602551fc8266"
+	export custPKGRoot="rokibhasansagar/46d764782ad15bbf546ad694cc820b45/raw/6c16c86b11403c3b7622dc3212514553cef7e8b6"
 	echo -e "[+] python-pip and tessdata PreInstallation for libjxl"
 	paru -S --noconfirm --needed ${PARU_OPTS} python-pip tesseract-data-eng tesseract-data-jpn
 	( sudo pacman -Q | grep "tesseract-data-" | awk '{print $1}' | grep -v "osd\|eng\|jpn" | sudo pacman -Rdd - --noconfirm 2>/dev/null || true )

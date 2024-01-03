@@ -37,7 +37,7 @@ RUN <<-'EOL'
 	export PARU_OPTS="--skipreview --noprovides --removemake --cleanafter --useask --combinedupgrade --batchinstall --nokeepsrc"
 	mkdir -p /home/app/.cache/paru/clone 2>/dev/null
 	echo -e "[+] Build Tools PreInstallation"
-	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c
+	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c zip unzip p7zip
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	export custPKGRoot="rokibhasansagar/46d764782ad15bbf546ad694cc820b45/raw/de9dbdf92a677c91d2c18fbe90f5602551fc8266"

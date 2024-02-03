@@ -61,10 +61,7 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && mkdir -p zimg-git
 	curl -sL "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=zimg-git" | sed "/'zimg'/d" >zimg-git/PKGBUILD
 	cd ./zimg-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
-	cd /home/app/.cache/paru/clone/ && git clone -q https://aur.archlinux.org/vapoursynth-git.git
-	sed -i 's|vapoursynth/vapoursynth.git|vapoursynth/vapoursynth.git#commit=cac1a7a|g' vapoursynth-git/PKGBUILD
-	cd ./vapoursynth-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
-	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-plugin-lsmashsource-git
+	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-git vapoursynth-plugin-lsmashsource-git
 	sudo ldconfig 2>/dev/null
 	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.11/site-packages &>/dev/null
 	( vspipe --version || true )

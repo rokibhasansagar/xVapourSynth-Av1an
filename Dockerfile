@@ -40,7 +40,7 @@ RUN <<-'EOL'
 	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c zip unzip p7zip
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
-	export custPKGRoot="rokibhasansagar/46d764782ad15bbf546ad694cc820b45/raw/6c16c86b11403c3b7622dc3212514553cef7e8b6"
+	export custPKGRoot="rokibhasansagar/46d764782ad15bbf546ad694cc820b45/raw/07df289395bc73f828bc11b17e7056402cffde78"
 	echo -e "[+] python-pip and tessdata PreInstallation for libjxl"
 	paru -S --noconfirm --needed ${PARU_OPTS} python-pip tesseract-data-eng tesseract-data-jpn
 	( sudo pacman -Q | grep "tesseract-data-" | awk '{print $1}' | grep -v "osd\|eng\|jpn" | sudo pacman -Rdd - --noconfirm 2>/dev/null || true )
@@ -51,10 +51,10 @@ RUN <<-'EOL'
 	echo -e "[+] libjxl-metrics-git Installation with makepkg"
 	paru -S --noconfirm --needed ${PARU_OPTS} libjxl-metrics-git
 	( sudo pacman -Rdd aom --noconfirm 2>/dev/null || true )
-	echo -e "[+] aom-av1-lavish-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && mkdir -p aom-av1-lavish-git
-	curl -sL "https://gist.github.com/${custPKGRoot}/aom-av1-lavish-git.PKGBUILD" >aom-av1-lavish-git/PKGBUILD
-	cd ./aom-av1-lavish-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	echo -e "[+] aom-psy101-git Installation with makepkg"
+	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git
+	curl -sL "https://gist.github.com/${custPKGRoot}/aom-psy101-git.PKGBUILD" >aom-psy101-git/PKGBUILD
+	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] vapoursynth-git, ffmpeg and other tools Installation with pacman"
 	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
 	sudo pacman -Rdd zimg --noconfirm 2>/dev/null
@@ -79,11 +79,10 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && mkdir -p x265-git
 	curl -sL "https://gist.github.com/${custPKGRoot}/x265-git.PKGBUILD" >x265-git/PKGBUILD
 	cd ./x265-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	echo -e "[+] svt-av1-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && mkdir -p svt-av1-git
-	curl -sL "https://gist.github.com/${custPKGRoot}/svt-av1-git.PKGBUILD" >svt-av1-git/PKGBUILD
-	sed -i 's|gitlab.com/AOMediaCodec|github.com/BlueSwordM|g' svt-av1-git/PKGBUILD
-	cd ./svt-av1-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	echo -e "[+] svt-av1-psy-git Installation with makepkg"
+	cd /home/app/.cache/paru/clone/ && mkdir -p svt-av1-psy-git
+	curl -sL "https://gist.github.com/${custPKGRoot}/svt-av1-psy-git.PKGBUILD" >svt-av1-psy-git/PKGBUILD
+	cd ./svt-av1-psy-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] ffmpeg version check"
 	( ffmpeg -hide_banner -version || true )
 	echo -e "[-] /tmp directory cleanup"
@@ -115,9 +114,10 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && mkdir -p av1an-git
 	curl -sL "https://gist.github.com/${custPKGRoot}/av1an-git.PKGBUILD" >av1an-git/PKGBUILD
 	cd ./av1an-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	echo -e "[i] rAV1e and Av1an Investigation"
+	echo -e "[i] Encoder and Av1an Investigation"
 	rav1e --version
 	av1an --version
+	SvtAv1EncApp --version
 	echo -e "[>] PostPlugs PacCache Investigation"
 	find /home/app/.cache/paru/clone/ -maxdepth 4 -iname *."pkg.tar.zst"* -type f | xargs -i sudo cp -vf {} /var/cache/pacman/pkg/
 	sudo du -sh /var/cache/pacman/pkg

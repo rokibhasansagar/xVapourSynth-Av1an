@@ -56,11 +56,12 @@ RUN <<-'EOL'
 	curl -sL "https://gist.github.com/${custPKGRoot}/aom-psy101-git.PKGBUILD" >aom-psy101-git/PKGBUILD
 	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] vapoursynth-git, ffmpeg and other tools Installation with pacman"
-	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
-	sudo pacman -Rdd zimg --noconfirm 2>/dev/null
+	( sudo pacman -Rdd zimg --noconfirm 2>/dev/null || true )
 	cd /home/app/.cache/paru/clone/ && mkdir -p zimg-git
 	curl -sL "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=zimg-git" | sed "/'zimg'/d" >zimg-git/PKGBUILD
 	cd ./zimg-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
+	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
+	( sudo pacman -Rdd vapoursynth --noconfirm 2>/dev/null || true )
 	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-git vapoursynth-plugin-lsmashsource-git
 	sudo ldconfig 2>/dev/null
 	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.11/site-packages &>/dev/null

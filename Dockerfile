@@ -37,10 +37,12 @@ RUN <<-'EOL'
 	export PARU_OPTS="--skipreview --noprovides --removemake --cleanafter --useask --combinedupgrade --batchinstall --nokeepsrc"
 	mkdir -p /home/app/.cache/paru/clone 2>/dev/null
 	echo -e "[+] Build Tools PreInstallation"
-	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c zip unzip p7zip
+	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c libgit2 zip unzip p7zip
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
-	export custPKGRoot="rokibhasansagar/46d764782ad15bbf546ad694cc820b45/raw/07df289395bc73f828bc11b17e7056402cffde78"
+	export custPKGRootHash="46d764782ad15bbf546ad694cc820b45"
+	export custPKGRootRev=$(git ls-remote -q "https://gist.github.com/rokibhasansagar/${custPKGRootHash}" HEAD | awk '{print $1}')
+	export custPKGRootAddr="https://gist.github.com/rokibhasansagar/${custPKGRootHash}/raw/${custPKGRootRev}"
 	echo -e "[+] python-pip and tessdata PreInstallation for libjxl"
 	paru -S --noconfirm --needed ${PARU_OPTS} python-pip tesseract-data-eng tesseract-data-jpn
 	( sudo pacman -Q | grep "tesseract-data-" | awk '{print $1}' | grep -v "osd\|eng\|jpn" | sudo pacman -Rdd - --noconfirm 2>/dev/null || true )
@@ -53,12 +55,12 @@ RUN <<-'EOL'
 	( sudo pacman -Rdd aom --noconfirm 2>/dev/null || true )
 	echo -e "[+] aom-psy101-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git
-	curl -sL "https://gist.github.com/${custPKGRoot}/aom-psy101-git.PKGBUILD" >aom-psy101-git/PKGBUILD
+	curl -sL "${custPKGRootAddr}/aom-psy101-git.PKGBUILD" >aom-psy101-git/PKGBUILD
 	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] vapoursynth-git, ffmpeg and other tools Installation with pacman"
 	( sudo pacman -Rdd zimg --noconfirm 2>/dev/null || true )
-	cd /home/app/.cache/paru/clone/ && mkdir -p zimg-git
-	curl -sL "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=zimg-git" | sed "/'zimg'/d" >zimg-git/PKGBUILD
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild zimg-git
+	sed -i "/'zimg'/d" zimg-git/PKGBUILD
 	cd ./zimg-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
 	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
 	( sudo pacman -Rdd vapoursynth --noconfirm 2>/dev/null || true )
@@ -69,17 +71,17 @@ RUN <<-'EOL'
 	echo -e "[-] Removing x265, svt-av1 & rav1e in order to install latest version"
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )
 	echo -e "[+] rav1e-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && mkdir -p rav1e-git
-	curl -sL "https://gist.github.com/${custPKGRoot}/rav1e-git.PKGBUILD" >rav1e-git/PKGBUILD
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild rav1e-git
+	curl -sL "${custPKGRootAddr}/rav1e-git.PKGBUILD" >rav1e-git/PKGBUILD
 	cd ./rav1e-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] x265-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && mkdir -p x265-git
-	curl -sL "https://gist.github.com/${custPKGRoot}/x265-git.PKGBUILD" >x265-git/PKGBUILD
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild x265-git
+	curl -sL "${custPKGRootAddr}/x265-git.PKGBUILD" >x265-git/PKGBUILD
 	cd ./x265-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] svt-av1-psy-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && mkdir -p svt-av1-psy-git
-	curl -sL "https://gist.github.com/${custPKGRoot}/svt-av1-psy-git.PKGBUILD" >svt-av1-psy-git/PKGBUILD
+	curl -sL "${custPKGRootAddr}/svt-av1-psy-git.PKGBUILD" >svt-av1-psy-git/PKGBUILD
 	cd ./svt-av1-psy-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] ffmpeg version check"
 	( ffmpeg -hide_banner -version || true )
@@ -91,7 +93,7 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	cd /tmp && CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --noconfirm --needed ${PARU_OPTS} onetbb vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-vstools-git vapoursynth-plugin-bestsource-git vapoursynth-plugin-imwri-git vapoursynth-plugin-vsdehalo-git vapoursynth-plugin-vsdeband-git vapoursynth-plugin-neo_f3kdb-git vapoursynth-plugin-neo_fft3dfilter-git vapoursynth-plugin-havsfunc-git vapoursynth-tools-getnative-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-bm3dcuda-cpu-git vapoursynth-plugin-knlmeanscl-git vapoursynth-plugin-nlm-git vapoursynth-plugin-retinex-git vapoursynth-plugin-eedi3m-git vapoursynth-plugin-znedi3-git vapoursynth-plugin-ttempsmooth-git vapoursynth-plugin-mvtools_sf-git
+	cd /tmp && CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --noconfirm --needed ${PARU_OPTS} onetbb vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-vstools-git vapoursynth-plugin-imwri-git vapoursynth-plugin-vsdehalo-git vapoursynth-plugin-vsdeband-git vapoursynth-plugin-neo_f3kdb-git vapoursynth-plugin-neo_fft3dfilter-git vapoursynth-plugin-havsfunc-git vapoursynth-tools-getnative-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-bm3dcuda-cpu-git vapoursynth-plugin-knlmeanscl-git vapoursynth-plugin-nlm-git vapoursynth-plugin-retinex-git vapoursynth-plugin-eedi3m-git vapoursynth-plugin-znedi3-git vapoursynth-plugin-ttempsmooth-git vapoursynth-plugin-mvtools_sf-git
 	( sudo pacman -Rdd vapoursynth-plugin-vsakarin-git --noconfirm 2>/dev/null || true )
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild vapoursynth-plugin-vsakarin-git
 	sed -i -e '/prepare()/a\  sed -i "152,154d" ${_plug}/expr2/reactor/LLVMJIT.cpp && if grep -q "\-x86-asm-syntax=intel" ${_plug}/expr2/reactor/LLVMJIT.cpp; then echo "VSAkarin Patch Failed"; fi' vapoursynth-plugin-vsakarin-git/PKGBUILD
@@ -99,18 +101,20 @@ RUN <<-'EOL'
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] vapoursynth-plugin-{bmdegrain,wnnm}-git Installation with makepkg"
-	export custPlugPKGRoot="rokibhasansagar/560defd34555c9f7652523377e96adff/raw/78562c0017473a75e283148e05b38b176853719d"
+	export custPlugPKGHash="560defd34555c9f7652523377e96adff"
+	export custPlugPKGRev=$(git ls-remote -q "https://gist.github.com/rokibhasansagar/${custPlugPKGHash}" HEAD | awk '{print $1}')
+	export custPlugPKGAddr="https://gist.github.com/rokibhasansagar/${custPlugPKGHash}/raw/${custPlugPKGRev}"
 	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-bmdegrain-git
-	curl -sL "https://gist.github.com/${custPlugPKGRoot}/vapoursynth-plugin-bmdegrain-git.PKGBUILD" >vapoursynth-plugin-bmdegrain-git/PKGBUILD
+	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-bmdegrain-git.PKGBUILD" >vapoursynth-plugin-bmdegrain-git/PKGBUILD
 	cd ./vapoursynth-plugin-bmdegrain-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-wnnm-git
-	curl -sL "https://gist.github.com/${custPlugPKGRoot}/vapoursynth-plugin-wnnm-git.PKGBUILD" >vapoursynth-plugin-wnnm-git/PKGBUILD
+	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-wnnm-git.PKGBUILD" >vapoursynth-plugin-wnnm-git/PKGBUILD
 	cd ./vapoursynth-plugin-wnnm-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] av1an-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && mkdir -p av1an-git
-	curl -sL "https://gist.github.com/${custPKGRoot}/av1an-git.PKGBUILD" >av1an-git/PKGBUILD
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild av1an-git
+	curl -sL "${custPKGRootAddr}/av1an-git.PKGBUILD" >av1an-git/PKGBUILD
 	cd ./av1an-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] Encoder and Av1an Investigation"
 	rav1e --version

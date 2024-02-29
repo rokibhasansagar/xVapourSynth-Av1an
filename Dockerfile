@@ -34,36 +34,35 @@ RUN <<-'EOL'
 	done
 	echo -e "[+] List of Packages Before Actual Operation:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
-	export PARU_OPTS="--skipreview --noprovides --removemake --cleanafter --useask --combinedupgrade --batchinstall --nokeepsrc"
+	export PARU_OPTS="--skipreview --noprovides --removemake --cleanafter --useask --combinedupgrade --batchinstall --nokeepsrc --noinstalldebug"
 	mkdir -p /home/app/.cache/paru/clone 2>/dev/null
 	echo -e "[+] Build Tools PreInstallation"
-	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c libgit2 zip unzip p7zip
+	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm rust cargo-c libgit2 zip unzip p7zip python-pip
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	export custPKGRootHash="46d764782ad15bbf546ad694cc820b45"
 	export custPKGRootRev=$(git ls-remote -q "https://gist.github.com/rokibhasansagar/${custPKGRootHash}" HEAD | awk '{print $1}')
 	export custPKGRootAddr="https://gist.github.com/rokibhasansagar/${custPKGRootHash}/raw/${custPKGRootRev}"
-	echo -e "[+] python-pip and tessdata PreInstallation for libjxl"
-	paru -S --noconfirm --needed ${PARU_OPTS} python-pip tesseract-data-eng tesseract-data-jpn
-	( sudo pacman -Q | grep "tesseract-data-" | awk '{print $1}' | grep -v "osd\|eng\|jpn" | sudo pacman -Rdd - --noconfirm 2>/dev/null || true )
-	echo -e "[+] highway-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild highway-git
-	sed -i -e "/build() {/a\    export CFLAGS+=' -Wno-unused-parameter -Wno-ignored-qualifiers' CXXFLAGS+=' -Wno-unused-parameter -Wno-ignored-qualifiers'" -e '/-Wno-dev/i\        -DHWY_ENABLE_TESTS:BOOL=OFF \\' highway-git/PKGBUILD
-	cd ./highway-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
-	echo -e "[+] libjxl-metrics-git Installation with makepkg"
-	paru -S --noconfirm --needed ${PARU_OPTS} libjxl-metrics-git
-	( sudo pacman -Rdd aom --noconfirm 2>/dev/null || true )
-	echo -e "[+] aom-psy101-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git
-	curl -sL "${custPKGRootAddr}/aom-psy101-git.PKGBUILD" >aom-psy101-git/PKGBUILD
-	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] vapoursynth-git, ffmpeg and other tools Installation with pacman"
 	( sudo pacman -Rdd zimg --noconfirm 2>/dev/null || true )
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild zimg-git
 	sed -i "/'zimg'/d" zimg-git/PKGBUILD
 	cd ./zimg-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
 	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
-	( sudo pacman -Rdd vapoursynth --noconfirm 2>/dev/null || true )
+	( sudo pacman -Rdd vapoursynth highway libjxl --noconfirm 2>/dev/null || true )
+	echo -e "[+] highway-git Installation with makepkg"
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild highway-git
+	curl -sL "${custPKGRootAddr}/highway-git.PKGBUILD" | sed '1d' >highway-git/PKGBUILD
+	cd ./highway-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	echo -e "[+] libjxl-metrics-git Installation with makepkg"
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild libjxl-metrics-git
+	curl -sL "${custPKGRootAddr}/libjxl-metrics-git.PKGBUILD" | sed '1d' >libjxl-metrics-git/PKGBUILD
+	cd ./libjxl-metrics-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	( sudo pacman -Rdd aom --noconfirm 2>/dev/null || true )
+	echo -e "[+] aom-psy101-git Installation with makepkg"
+	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git
+	curl -sL "${custPKGRootAddr}/aom-psy101-git.PKGBUILD" | sed '1d' >aom-psy101-git/PKGBUILD
+	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-git vapoursynth-plugin-lsmashsource-git
 	sudo ldconfig 2>/dev/null
 	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.11/site-packages &>/dev/null
@@ -72,16 +71,16 @@ RUN <<-'EOL'
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )
 	echo -e "[+] rav1e-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild rav1e-git
-	curl -sL "${custPKGRootAddr}/rav1e-git.PKGBUILD" >rav1e-git/PKGBUILD
+	curl -sL "${custPKGRootAddr}/rav1e-git.PKGBUILD" | sed '1d' >rav1e-git/PKGBUILD
 	cd ./rav1e-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] x265-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild x265-git
-	curl -sL "${custPKGRootAddr}/x265-git.PKGBUILD" >x265-git/PKGBUILD
+	curl -sL "${custPKGRootAddr}/x265-git.PKGBUILD" | sed '1d' >x265-git/PKGBUILD
 	cd ./x265-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[+] svt-av1-psy-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && mkdir -p svt-av1-psy-git
-	curl -sL "${custPKGRootAddr}/svt-av1-psy-git.PKGBUILD" >svt-av1-psy-git/PKGBUILD
+	curl -sL "${custPKGRootAddr}/svt-av1-psy-git.PKGBUILD" | sed '1d' >svt-av1-psy-git/PKGBUILD
 	cd ./svt-av1-psy-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] ffmpeg version check"
 	( ffmpeg -hide_banner -version || true )
@@ -105,16 +104,16 @@ RUN <<-'EOL'
 	export custPlugPKGRev=$(git ls-remote -q "https://gist.github.com/rokibhasansagar/${custPlugPKGHash}" HEAD | awk '{print $1}')
 	export custPlugPKGAddr="https://gist.github.com/rokibhasansagar/${custPlugPKGHash}/raw/${custPlugPKGRev}"
 	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-bmdegrain-git
-	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-bmdegrain-git.PKGBUILD" >vapoursynth-plugin-bmdegrain-git/PKGBUILD
+	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-bmdegrain-git.PKGBUILD" | sed '1d' >vapoursynth-plugin-bmdegrain-git/PKGBUILD
 	cd ./vapoursynth-plugin-bmdegrain-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-wnnm-git
-	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-wnnm-git.PKGBUILD" >vapoursynth-plugin-wnnm-git/PKGBUILD
+	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-wnnm-git.PKGBUILD" | sed '1d' >vapoursynth-plugin-wnnm-git/PKGBUILD
 	cd ./vapoursynth-plugin-wnnm-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] av1an-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild av1an-git
-	curl -sL "${custPKGRootAddr}/av1an-git.PKGBUILD" >av1an-git/PKGBUILD
+	curl -sL "${custPKGRootAddr}/av1an-git.PKGBUILD" | sed '1d' >av1an-git/PKGBUILD
 	cd ./av1an-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] Encoder and Av1an Investigation"
 	rav1e --version

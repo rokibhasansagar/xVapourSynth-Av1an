@@ -63,7 +63,10 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git
 	curl -sL "${custPKGRootAddr}/aom-psy101-git.PKGBUILD" | sed '1d' >aom-psy101-git/PKGBUILD
 	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-git vapoursynth-plugin-lsmashsource-git
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild vapoursynth-git
+	curl -sL "${custPKGRootAddr}/vapoursynth-git.PKGBUILD" | sed '1d' >vapoursynth-git/PKGBUILD
+	cd ./vapoursynth-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-plugin-lsmashsource-git
 	sudo ldconfig 2>/dev/null
 	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.11/site-packages &>/dev/null
 	( vspipe --version || true )

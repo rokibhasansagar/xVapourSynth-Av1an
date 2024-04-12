@@ -48,6 +48,9 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild zimg-git
 	sed -i "/'zimg'/d" zimg-git/PKGBUILD
 	cd ./zimg-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
+	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild libdovi-git
+	curl -sL "${custPKGRootAddr}/libdovi-git.PKGBUILD" | sed '1d' >libdovi-git/PKGBUILD
+	cd ./libdovi-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
 	( sudo pacman -Rdd vapoursynth highway libjxl --noconfirm 2>/dev/null || true )
 	echo -e "[+] highway-git Installation with makepkg"

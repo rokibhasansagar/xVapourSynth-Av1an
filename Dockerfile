@@ -71,7 +71,7 @@ RUN <<-'EOL'
 	cd ./vapoursynth-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-plugin-lsmashsource-git
 	sudo ldconfig 2>/dev/null
-	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.11/site-packages &>/dev/null
+	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.12/site-packages &>/dev/null
 	( vspipe --version || true )
 	echo -e "[-] Removing x265, svt-av1 & rav1e in order to install latest version"
 	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )

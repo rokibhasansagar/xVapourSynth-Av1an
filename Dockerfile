@@ -1,5 +1,8 @@
 # syntax=docker/dockerfile:1.5
-FROM archlinux:base-devel
+FROM --platform=$BUILDPLATFORM archlinux:base-devel
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 # USER root
 

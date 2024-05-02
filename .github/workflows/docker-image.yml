@@ -23,6 +23,11 @@ jobs:
         with:
           ref: 'main'
       -
+        name: Minor Disc Cleanup
+        run: |
+          docker system prune -a -f
+          sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache /usr/local/share/vcpkg /usr/share/dotnet /opt/ghc
+      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       -

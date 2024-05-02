@@ -10,11 +10,11 @@ SHELL ["/bin/bash", "-c"]
 
 # Add "app" user with "sudo" access
 RUN <<-'EOL'
-	pacman-key --init
-	pacman-key --populate archlinux
-	useradd -m -G wheel -s /bin/bash app
-	sed -i 's/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
-	sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+	pacman-key --init && pacman-key --populate archlinux
+	useradd -G wheel -m -s /bin/bash app
+	echo -e "\n%wheel ALL=(ALL:ALL) NOPASSWD: ALL\napp   ALL=(ALL:ALL) NOPASSWD: ALL\n" | sudo tee -a /etc/sudoers
+	# sed -i 's/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
+	# sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 EOL
 
 USER app

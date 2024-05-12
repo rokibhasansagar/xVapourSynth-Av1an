@@ -76,12 +76,12 @@ RUN <<-'EOL'
 	sudo ldconfig 2>/dev/null
 	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.12/site-packages &>/dev/null
 	( vspipe --version || true )
-	echo -e "[-] Removing x265, svt-av1 & rav1e in order to install latest version"
-	( sudo pacman -Rdd x265 svt-av1 rav1e --noconfirm 2>/dev/null || true )
-	echo -e "[+] rav1e-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild rav1e-git
-	curl -sL "${custPKGRootAddr}/rav1e-git.PKGBUILD" | sed '1d' >rav1e-git/PKGBUILD
-	cd ./rav1e-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	echo -e "[-] Removing x265, svt-av1 in order to install latest version"
+	( sudo pacman -Rdd x265 svt-av1 --noconfirm 2>/dev/null || true )
+	# echo -e "[+] rav1e-git Installation with makepkg"
+	# cd /home/app/.cache/paru/clone/ && paru --getpkgbuild rav1e-git
+	# curl -sL "${custPKGRootAddr}/rav1e-git.PKGBUILD" | sed '1d' >rav1e-git/PKGBUILD
+	# cd ./rav1e-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	sudo ldconfig 2>/dev/null
 	echo -e "[+] x265-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild x265-git

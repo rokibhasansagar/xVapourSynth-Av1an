@@ -40,7 +40,7 @@ RUN <<-'EOL'
 	export PARU_OPTS="--skipreview --noprovides --removemake --cleanafter --useask --combinedupgrade --batchinstall --nokeepsrc --noinstalldebug"
 	mkdir -p /home/app/.cache/paru/clone 2>/dev/null
 	echo -e "[+] Build Tools PreInstallation"
-	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm compiler-rt jq zig-dev-bin rust cargo-c libgit2 zip unzip p7zip python-pip
+	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm compiler-rt jq zig rust cargo-c libgit2 zip unzip p7zip python-pip
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	export custPKGRootHash="46d764782ad15bbf546ad694cc820b45"
@@ -128,6 +128,8 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/
 	git clone --filter=blob:none https://github.com/dnjulek/vapoursynth-ssimulacra2
 	cd vapoursynth-ssimulacra2
+	# sed -i -e 's|minor = 12|minor = 13|g;s|pre = "dev.2158"|pre = "dev.133"|g' build.zig
+	# sed -i '/ssimulacra2.zig/c\        .root_source_file = b.path("src/ssimulacra2.zig"),' build.zig
 	zig build -Doptimize=ReleaseFast
 	sudo chmod 755 zig-out/lib/libssimulacra2.so
 	sudo cp -a -v zig-out/lib/libssimulacra2.so /usr/lib/vapoursynth/
@@ -166,7 +168,7 @@ RUN <<-'EOL'
 	sudo du -sh ~/\.[a-z]* 2>/dev/null
 	echo -e "[<] Cleanup"
 	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null
-	( sudo pacman -Rdd cmake ninja clang nasm yasm rust cargo-c compiler-rt zig-dev-bin --noconfirm 2>/dev/null || true )
+	( sudo pacman -Rdd cmake ninja clang nasm yasm rust cargo-c compiler-rt zig --noconfirm 2>/dev/null || true )
 	sudo rm -rf /tmp/* /var/cache/pacman/pkg/* /home/app/.cache/yay/* /home/app/.cache/paru/* /home/app/.cargo/* 2>/dev/null
 EOL
 

@@ -13,8 +13,6 @@ RUN <<-'EOL'
 	pacman-key --init && pacman-key --populate archlinux
 	useradd -G wheel -m -s /bin/bash app
 	echo -e "\n%wheel ALL=(ALL:ALL) NOPASSWD: ALL\napp   ALL=(ALL:ALL) NOPASSWD: ALL\n" | sudo tee -a /etc/sudoers
-	# sed -i 's/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
-	# sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 EOL
 
 USER app
@@ -87,6 +85,7 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild x265-git
 	curl -sL "${custPKGRootAddr}/x265-git.PKGBUILD" | sed '1d' >x265-git/PKGBUILD
 	cd ./x265-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	( x265 -V 2>&1 || true )
 	echo -e "[+] svt-av1-psy-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && mkdir -p svt-av1-psy-git
 	curl -sL "${custPKGRootAddr}/svt-av1-psy-git.PKGBUILD" | sed '1d' >svt-av1-psy-git/PKGBUILD
@@ -101,12 +100,15 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild vapoursynth-plugin-vsakarin-git
-	curl -sL "${custPKGRootAddr}/vapoursynth-plugin-vsakarin-git.PKGBUILD" | sed '1d' >vapoursynth-plugin-vsakarin-git/PKGBUILD
-	cd ./vapoursynth-plugin-vsakarin-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild vapoursynth-plugin-adjust-git
-	curl -sL "${custPKGRootAddr}/vapoursynth-plugin-adjust-git.PKGBUILD" | sed '1d' >vapoursynth-plugin-adjust-git/PKGBUILD
-	cd ./vapoursynth-plugin-adjust-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	# llvm16-libs from AUR for vsakarin is needed
+	cd /home/app/.cache/paru/clone/ && mkdir -p llvm16-libs
+	curl -sL "${custPKGRootAddr}/llvm16-libs.PKGBUILD" | sed '1d' >llvm16-libs/PKGBUILD
+	cd ./llvm16-libs && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	for pkgs in vapoursynth-plugin-vsakarin-git vapoursynth-plugin-adjust-git; do
+	  cd /home/app/.cache/paru/clone/ && paru --getpkgbuild ${pkgs}
+	  curl -sL "${custPKGRootAddr}/${pkgs}.PKGBUILD" | sed '1d' >${pkgs}/PKGBUILD
+	  cd ./${pkgs} && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	done
 	cd /tmp && CFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' CXXFLAGS+=' -Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough' paru -S --noconfirm --needed ${PARU_OPTS} onetbb vapoursynth-plugin-muvsfunc-git vapoursynth-plugin-vstools-git vapoursynth-plugin-imwri-git vapoursynth-plugin-vsdehalo-git vapoursynth-plugin-vsdeband-git vapoursynth-plugin-neo_f3kdb-git vapoursynth-plugin-neo_fft3dfilter-git vapoursynth-plugin-havsfunc-git vapoursynth-tools-getnative-git vapoursynth-plugin-vspyplugin-git vapoursynth-plugin-vsmasktools-git vapoursynth-plugin-bm3dcuda-cpu-git vapoursynth-plugin-knlmeanscl-git vapoursynth-plugin-nlm-git vapoursynth-plugin-retinex-git vapoursynth-plugin-eedi3m-git vapoursynth-plugin-znedi3-git vapoursynth-plugin-ttempsmooth-git vapoursynth-plugin-mvtools_sf-git vapoursynth-plugin-soifunc-git vapoursynth-plugin-kagefunc-git vapoursynth-plugin-bestsource-git
 	libtool --finish /usr/lib/vapoursynth &>/dev/null
 	sudo ldconfig 2>/dev/null
@@ -114,18 +116,15 @@ RUN <<-'EOL'
 	export custPlugPKGHash="560defd34555c9f7652523377e96adff"
 	export custPlugPKGRev=$(git ls-remote -q "https://gist.github.com/rokibhasansagar/${custPlugPKGHash}" HEAD | awk '{print $1}')
 	export custPlugPKGAddr="https://gist.github.com/rokibhasansagar/${custPlugPKGHash}/raw/${custPlugPKGRev}"
-	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-bmdegrain-git
-	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-bmdegrain-git.PKGBUILD" | sed '1d' >vapoursynth-plugin-bmdegrain-git/PKGBUILD
-	cd ./vapoursynth-plugin-bmdegrain-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	cd /home/app/.cache/paru/clone/ && mkdir -p vapoursynth-plugin-wnnm-git
-	curl -sL "${custPlugPKGAddr}/vapoursynth-plugin-wnnm-git.PKGBUILD" | sed '1d' >vapoursynth-plugin-wnnm-git/PKGBUILD
-	cd ./vapoursynth-plugin-wnnm-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	for pkgs in vapoursynth-plugin-{bmdegrain,wnnm}-git; do
+	  cd /home/app/.cache/paru/clone/ && mkdir -p ${pkgs}
+	  curl -sL "${custPlugPKGAddr}/${pkgs}.PKGBUILD" | sed '1d' >${pkgs}/PKGBUILD
+	  cd ./${pkgs} && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	done
 	echo -e "[+] Install {libjulek,libssimulacra2}.so"
 	cd /home/app/.cache/paru/clone/
 	git clone --filter=blob:none https://github.com/dnjulek/vapoursynth-ssimulacra2
 	cd vapoursynth-ssimulacra2
-	# sed -i -e 's|minor = 12|minor = 13|g;s|pre = "dev.2158"|pre = "dev.133"|g' build.zig
-	# sed -i '/ssimulacra2.zig/c\        .root_source_file = b.path("src/ssimulacra2.zig"),' build.zig
 	zig build -Doptimize=ReleaseFast
 	sudo chmod 755 zig-out/lib/libssimulacra2.so
 	sudo cp -a -v zig-out/lib/libssimulacra2.so /usr/lib/vapoursynth/
@@ -172,4 +171,3 @@ VOLUME ["/videos"]
 WORKDIR /videos
 
 ENTRYPOINT [ "/usr/bin/bash" ]
-

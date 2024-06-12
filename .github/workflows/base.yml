@@ -6,9 +6,9 @@ on:
     paths:
       - 'Dockerfile'
   workflow_dispatch:
-  schedule:
+  # schedule:
     # Runs at 01:00 UTC on Thu and Mon.
-    - cron: '0 1 * * THU,MON'
+    # - cron: '0 1 * * THU,MON'
 
 jobs:
 
@@ -38,7 +38,7 @@ jobs:
           install: true
           buildkitd-config-inline: |
             [worker.oci]
-              max-parallelism = 6
+              max-parallelism = 4
       -
         name: Inspect builder
         run: |
@@ -58,7 +58,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/vapoursynth-av1an-rt
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/xvapoursynth-av1an-rt
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,enable=true,prefix=sha-,format=short
@@ -73,7 +73,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64/v2,linux/amd64/v3
+          platforms: linux/amd64/v2
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
@@ -82,3 +82,19 @@ jobs:
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+      -
+        name: Build & Push the Docker image
+        id: docker_build2
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64/v3
+          push: true
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          cache-from: type=registry,ref=archlinux:base-devel
+          cache-to: type=inline
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build2.outputs.digest }}

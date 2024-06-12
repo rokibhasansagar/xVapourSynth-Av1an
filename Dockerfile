@@ -51,19 +51,19 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild zimg-git
 	sed -i "/'zimg'/d" zimg-git/PKGBUILD
 	cd ./zimg-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --rebuild && cd ..
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild libdovi-git
-	curl -sL "${custPKGRootAddr}/libdovi-git.PKGBUILD" | sed '1d' >libdovi-git/PKGBUILD
-	cd ./libdovi-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	for pkgs in libdovi-git libhdr10plus-rs-git; do
+	  cd /home/app/.cache/paru/clone/ && paru --getpkgbuild ${pkgs}
+	  curl -sL "${custPKGRootAddr}/${pkgs}.PKGBUILD" | sed '1d' >${pkgs}/PKGBUILD
+	  cd ./${pkgs} && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	done
 	paru -S --noconfirm --needed ${PARU_OPTS} ffmpeg ffms2 mkvtoolnix-cli numactl
 	( sudo pacman -Rdd vapoursynth highway libjxl --noconfirm 2>/dev/null || true )
-	echo -e "[+] highway-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild highway-git
-	curl -sL "${custPKGRootAddr}/highway-git.PKGBUILD" | sed '1d' >highway-git/PKGBUILD
-	cd ./highway-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	echo -e "[+] libjxl-metrics-git Installation with makepkg"
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild libjxl-metrics-git
-	curl -sL "${custPKGRootAddr}/libjxl-metrics-git.PKGBUILD" | sed '1d' >libjxl-metrics-git/PKGBUILD
-	cd ./libjxl-metrics-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	for pkgs in highway-git libjxl-metrics-git; do
+	  echo -e "[+] ${pkgs} Installation with makepkg"
+	  cd /home/app/.cache/paru/clone/ && paru --getpkgbuild ${pkgs}
+	  curl -sL "${custPKGRootAddr}/${pkgs}.PKGBUILD" | sed '1d' >${pkgs}/PKGBUILD
+	  cd ./${pkgs} && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	done
 	( sudo pacman -Rdd aom --noconfirm 2>/dev/null || true )
 	echo -e "[+] aom-psy101-git Installation with makepkg"
 	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git

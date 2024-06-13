@@ -73,28 +73,25 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64/v2
+          platforms: linux/amd64/v2,linux/amd64/v3
           push: true
+          provenance: false
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
-          cache-from: type=registry,ref=archlinux:base-devel
-          cache-to: type=inline
+          # cache-from: type=registry,ref=archlinux:base-devel
+          cache-to: type=local,dest=/home/runner/xvapoursynth-av1an-rt.tar
+          outputs: |
+            type=registry
+            type=tar,dest=/home/runner/xvapoursynth-av1an-rt-out.tar
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
       -
-        name: Build & Push the Docker image
-        id: docker_build2
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64/v3
-          push: true
-          tags: ${{ steps.docker_meta.outputs.tags }}
-          labels: ${{ steps.docker_meta.outputs.labels }}
-          cache-from: type=registry,ref=archlinux:base-devel
-          cache-to: type=inline
-      -
-        name: Image digest
-        run: echo ${{ steps.docker_build2.outputs.digest }}
+        name: Output Details
+        run: |
+          cd /home/runner/
+          ls -lA .
+          du -sh *.tar
+          for t in *.tar; do
+            echo && tar -tvf "${t}" 2>&1 | head -n50
+          done

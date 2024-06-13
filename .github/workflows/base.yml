@@ -79,7 +79,8 @@ jobs:
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
           # cache-from: type=registry,ref=archlinux:base-devel
-          cache-to: type=local,dest=/home/runner/xvapoursynth-av1an-rt.tar
+          cache-from: type=local,src=/home/runner/xvapoursynth-av1an-rt
+          cache-to: type=local,dest=/home/runner/xvapoursynth-av1an-rt
           outputs: |
             type=registry
             type=tar,dest=/home/runner/xvapoursynth-av1an-rt-out.tar
@@ -90,8 +91,6 @@ jobs:
         name: Output Details
         run: |
           cd /home/runner/
-          ls -lA .
-          du -sh *.tar
-          for t in *.tar; do
-            echo && tar -tvf "${t}" 2>&1 | head -n50
-          done
+          ls -lA ./xvapoursynth-av1an-rt
+          du -sh xvapoursynth*
+          echo && tar -tvf "xvapoursynth-av1an-rt-out.tar" 2>&1 && echo

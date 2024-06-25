@@ -67,12 +67,14 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git
 	curl -sL "${custPKGRootAddr}/aom-psy101-git.PKGBUILD" | sed '1d' >aom-psy101-git/PKGBUILD
 	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	cd /home/app/.cache/paru/clone/ && paru --getpkgbuild vapoursynth-git
-	curl -sL "${custPKGRootAddr}/vapoursynth-git.PKGBUILD" | sed '1d' >vapoursynth-git/PKGBUILD
-	cd ./vapoursynth-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	paru -S --noconfirm --needed ${PARU_OPTS} vapoursynth-plugin-lsmashsource-git
+	for pkgs in vapoursynth-git vapoursynth-plugin-lsmashsource-git; do
+	  cd /home/app/.cache/paru/clone/ && ( paru --getpkgbuild ${pkgs} 2>/dev/null || mkdir -p ${pkgs} )
+	  curl -sL "${custPKGRootAddr}/${pkgs}.PKGBUILD" | sed '1d' >${pkgs}/PKGBUILD
+	  cd ./${pkgs} && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
+	done
+	libtool --finish /usr/lib &>/dev/null
+	libtool --finish /usr/lib/python3.12/site-packages &>/dev/null
 	sudo ldconfig 2>/dev/null
-	libtool --finish /usr/lib &>/dev/null && libtool --finish /usr/lib/python3.12/site-packages &>/dev/null
 	( vspipe --version || true )
 	echo -e "[-] Removing x265, svt-av1 in order to install latest version"
 	( sudo pacman -Rdd x265 svt-av1 --noconfirm 2>/dev/null || true )

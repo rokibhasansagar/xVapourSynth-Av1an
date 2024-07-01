@@ -73,7 +73,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64/v2,linux/amd64/v3
+          platforms: linux/amd64/v2
           push: true
           provenance: false
           tags: ${{ steps.docker_meta.outputs.tags }}
@@ -91,6 +91,8 @@ jobs:
         name: Output Details
         run: |
           cd /home/runner/
-          ls -lA ./xvapoursynth-av1an-rt
           du -sh xvapoursynth*
-          echo && tar -tvf "xvapoursynth-av1an-rt-out.tar" 2>&1 && echo
+          tree -a -h -L 3 ./xvapoursynth-av1an-rt
+          tar -tvf "xvapoursynth-av1an-rt-out.tar" >./xvapoursynth-av1an-rt-out.log
+          tar -I'xz -e -T2' -cf xvapoursynth-av1an-rt-out.log.txz xvapoursynth-av1an-rt-out.log
+          curl -s -F"file=@xvapoursynth-av1an-rt-out.log.txz" https://temp.sh/upload && echo

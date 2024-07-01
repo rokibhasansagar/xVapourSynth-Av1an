@@ -67,7 +67,7 @@ RUN <<-'EOL'
 	cd /home/app/.cache/paru/clone/ && mkdir -p aom-psy101-git
 	curl -sL "${custPKGRootAddr}/aom-psy101-git.PKGBUILD" | sed '1d' >aom-psy101-git/PKGBUILD
 	cd ./aom-psy101-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
-	for pkgs in vapoursynth-git vapoursynth-plugin-lsmashsource-git; do
+	for pkgs in vapoursynth-git foosynth-plugin-lsmashsource-git; do
 	  cd /home/app/.cache/paru/clone/ && ( paru --getpkgbuild ${pkgs} 2>/dev/null || mkdir -p ${pkgs} )
 	  curl -sL "${custPKGRootAddr}/${pkgs}.PKGBUILD" | sed '1d' >${pkgs}/PKGBUILD
 	  cd ./${pkgs} && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
@@ -94,8 +94,6 @@ RUN <<-'EOL'
 	cd ./svt-av1-psy-git && paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild && cd ..
 	echo -e "[i] ffmpeg version check"
 	( ffmpeg -hide_banner -version || true )
-	echo -e "[-] /tmp directory cleanup"
-	cd /tmp && rm -rf -- *
 	echo -e "[+] List of All Packages After Base Installation:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	echo -e "[>] PacCache Investigation"
@@ -155,7 +153,7 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst
 	echo -e "[>] PostPlugs ParuCache Investigation"
-	sudo du -sh /home/app/.cache/paru/* /home/app/.cache/paru/clone/*
+	sudo du -sh /home/app/.cache/zig /home/app/.cache/paru/* /home/app/.cache/paru/clone/*
 	echo -e "[i] All Installed AppList:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | grep -v 'vapoursynth-' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	echo -e "[i] All Installed Vapoursynth Plugins:"
@@ -166,7 +164,9 @@ RUN <<-'EOL'
 	echo -e "[<] Cleanup"
 	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null
 	( sudo pacman -Rdd cmake ninja clang nasm yasm rust cargo-c compiler-rt zig --noconfirm 2>/dev/null || true )
-	sudo rm -rf /tmp/* /var/cache/pacman/pkg/* /home/app/.cache/yay/* /home/app/.cache/paru/* /home/app/.cargo/* 2>/dev/null
+	sudo rm -rf /tmp/* /var/cache/pacman/pkg/* /home/app/.cache/zig/* /home/app/.cache/yay/* /home/app/.cache/paru/* /home/app/.cargo/* 2>/dev/null
+	echo -e "[+] List of All Packages At The End Of All Process:"
+	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 EOL
 
 VOLUME ["/videos"]

@@ -92,7 +92,7 @@ jobs:
         run: |
           cd /home/runner/
           du -sh xvapoursynth*
-          tree -a -h -L 3 ./xvapoursynth-av1an-rt
+          tree -a -h -L 4 ./xvapoursynth-av1an-rt
           tar -tvf "xvapoursynth-av1an-rt-out.tar" >./xvapoursynth-av1an-rt-out.log
-          tar -I'xz -e -T2' -cf xvapoursynth-av1an-rt-out.log.txz xvapoursynth-av1an-rt-out.log
+          tar -I'xz -9e -T2' -cf xvapoursynth-av1an-rt-out.log.txz xvapoursynth-av1an-rt-out.log
           curl -s -F"file=@xvapoursynth-av1an-rt-out.log.txz" https://temp.sh/upload && echo

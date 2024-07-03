@@ -38,7 +38,7 @@ RUN <<-'EOL'
 	export PARU_OPTS="--skipreview --noprovides --useask --combinedupgrade --batchinstall --noinstalldebug --removemake --cleanafter --nokeepsrc"
 	echo -e "[+] Build Tools PreInstallation"
 	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm compiler-rt jq zig rust cargo-c libgit2 zip unzip p7zip python-pip doxygen python-sphinx
-	# export PARU_OPTS="--skipreview --noprovides --useask --combinedupgrade --batchinstall --noinstalldebug --removemake --nocleanafter --nokeepsrc"
+	export PARU_OPTS="--skipreview --noprovides --useask --combinedupgrade --batchinstall --noinstalldebug --removemake --nocleanafter --nokeepsrc"
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	mkdir -p /home/app/.cache/paru/clone 2>/dev/null
@@ -77,8 +77,8 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg /home/app/.cache/paru/*
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	# llvm16-libs from AUR for vsakarin is needed
-	export pkgs=(llvm16-libs vapoursynth-plugin-{vsakarin,adjust}-git) && _custPKGBuilder
+	# llvm(17)-libs from Arch for vsakarin is needed now, so skip llvm16-libs
+	export pkgs=(vapoursynth-plugin-{vsakarin,adjust}-git) && _custPKGBuilder
 	export silentFlags='-Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough'
 	cd /tmp && CFLAGS+=" ${silentFlags}" CXXFLAGS+=" ${silentFlags}" paru -S --noconfirm --needed ${PARU_OPTS} onetbb vapoursynth-tools-getnative-git vapoursynth-plugin-{bestsource,bm3dcuda-cpu,eedi3m,havsfunc,imwri,kagefunc,knlmeanscl,muvsfunc,mvtools_sf,neo_f3kdb,neo_fft3dfilter,nlm,retinex,soifunc,ttempsmooth,vsdeband,vsdehalo,vsmasktools,vspyplugin,vstools,znedi3}-git
 	libtool --finish /usr/lib/vapoursynth &>/dev/null

@@ -37,7 +37,7 @@ RUN <<-'EOL'
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	export PARU_OPTS="--skipreview --noprovides --useask --combinedupgrade --batchinstall --noinstalldebug --removemake --cleanafter --nokeepsrc"
 	echo -e "[+] Build Tools PreInstallation"
-	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm compiler-rt jq zig rust cargo-c libgit2 zip unzip p7zip python-pip doxygen python-sphinx
+	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm meson compiler-rt jq zig rust cargo-c libgit2 zip unzip p7zip python-pip doxygen python-sphinx
 	export PARU_OPTS="--skipreview --noprovides --useask --combinedupgrade --batchinstall --noinstalldebug --removemake --nocleanafter --nokeepsrc"
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
@@ -77,6 +77,14 @@ RUN <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg /home/app/.cache/paru/*
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
+	export pkgs=(waifu2x-ncnn-vulkan-git) && _custPKGBuilder
+	( waifu2x-ncnn-vulkan || true )
+	(
+	  curl -sLO "https://avatars.githubusercontent.com/u/86638041?s=200&v=4"
+	  waifu2x-ncnn-vulkan -i 86638041.png -o 86638041.2x.png -n 1 -s 2
+	  ls -lAog 86638041*
+	) || true
+	( /usr/bin/onnx2ncnn --help || onnx2ncnn ) || true
 	# llvm(17)-libs from Arch for vsakarin is needed now, so skip llvm16-libs
 	export pkgs=(vapoursynth-plugin-{vsakarin,adjust}-git) && _custPKGBuilder
 	export silentFlags='-Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough'
@@ -96,7 +104,7 @@ RUN <<-'EOL'
 	( SvtAv1EncApp --version || true )
 	echo -e "[>] PostPlugs PacCache Investigation"
 	find /tmp /home/app/.cache/paru/ -maxdepth 3 -type f -name "*.pkg.tar.zst" | xargs -i sudo cp -vf {} /var/cache/pacman/pkg/
-	find /tmp /home/app/.cache/paru/ -maxdepth 3 -type f -name "*.pkg.tar.zst" | xargs -i curl -s -F"file=@{}" https://temp.sh/upload
+	find /tmp /home/app/.cache/paru/ -maxdepth 3 -type f -name "*.pkg.tar.zst" | while read -r i; do curl -s -F"file=@${i}" https://temp.sh/upload && echo; done
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /home/app/.cache/paru/pkgbuilds/*/*.pkg.tar.zst /var/cache/pacman/pkg/*.pkg.tar.zst
 	echo -e "[>] PostPlugs ParuCache Investigation"
@@ -109,9 +117,9 @@ RUN <<-'EOL'
 	echo -e "[i] Home directory Investigation"
 	sudo du -sh ~/\.[a-z]* 2>/dev/null
 	echo -e "[<] Cleanup"
-	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null
-	( sudo pacman -Rdd cmake ninja clang nasm yasm rust cargo-c compiler-rt zig --noconfirm 2>/dev/null || true )
-	( paru -R --noconfirm --needed ${PARU_OPTS} doxygen python-sphinx )
+	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null  # /usr/share/
+	( sudo pacman -Rdd cmake ninja clang nasm yasm meson rust cargo-c compiler-rt zig --noconfirm 2>/dev/null || true )
+	( paru -R --noconfirm ${PARU_OPTS} doxygen python-sphinx )
 	sudo rm -rf /tmp/* /var/cache/pacman/pkg/* /home/app/.cache/zig/* /home/app/.cache/yay/* /home/app/.cache/paru/{clone,pkgbuilds}/* /home/app/.cargo/* 2>/dev/null
 	echo -e "[+] List of All Packages At The End Of All Process:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null

@@ -28,6 +28,12 @@ jobs:
           docker system prune -a -f
           sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache /usr/local/share/vcpkg /usr/share/dotnet /opt/ghc
       -
+        name: Enable KVM group perms
+        run: |
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       -

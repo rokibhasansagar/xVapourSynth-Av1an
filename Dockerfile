@@ -78,13 +78,6 @@ RUN <<-'EOL'
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
 	export pkgs=(waifu2x-ncnn-vulkan-git) && _custPKGBuilder
-	( waifu2x-ncnn-vulkan || true )
-	(
-	  curl -sLO "https://avatars.githubusercontent.com/u/86638041?s=200&v=4"
-	  waifu2x-ncnn-vulkan -i 86638041.png -o 86638041.2x.png -n 1 -s 2
-	  ls -lAog 86638041*
-	) || true
-	( /usr/bin/onnx2ncnn --help || onnx2ncnn ) || true
 	# llvm(17)-libs from Arch for vsakarin is needed now, so skip llvm16-libs
 	export pkgs=(vapoursynth-plugin-{vsakarin,adjust}-git) && _custPKGBuilder
 	export silentFlags='-Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough'
@@ -103,23 +96,45 @@ RUN <<-'EOL'
 	( av1an --version || true )
 	( SvtAv1EncApp --version || true )
 	echo -e "[>] PostPlugs PacCache Investigation"
+	set +ex
 	find /tmp /home/app/.cache/paru/ -maxdepth 3 -type f -name "*.pkg.tar.zst" | xargs -i sudo cp -vf {} /var/cache/pacman/pkg/
 	find /tmp /home/app/.cache/paru/ -maxdepth 3 -type f -name "*.pkg.tar.zst" | while read -r i; do curl -s -F"file=@${i}" https://temp.sh/upload && echo; done
+	set -ex
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /home/app/.cache/paru/pkgbuilds/*/*.pkg.tar.zst /var/cache/pacman/pkg/*.pkg.tar.zst
+	paru -S --noconfirm --needed ${PARU_OPTS} rclone vulkan-tools vulkan-swrast
+	( waifu2x-ncnn-vulkan || true )
+	(
+	  cat /usr/lib/pkgconfig/vulkan.pc
+	  vulkaninfo --help || true
+	  vulkaninfo || true
+	  curl -sLO "https://avatars.githubusercontent.com/u/86638041?s=200&v=4"
+	  waifu2x-ncnn-vulkan -i 86638041.png -o 86638041.2x.png -n 1 -s 2
+	  ls -lAog 86638041*
+	) || true
+	( /usr/bin/onnx2ncnn --help || onnx2ncnn ) || true
+	(
+	  RCLONE_CONFIG_HASH=${RCLONE_CONFIG_HASH:-e3ae1975eb92f351c4acfa1fc23c7ca4}
+	  curl -sL --retry 5 --retry-connrefused "https://v.gd/setuprclone4fr3aky" | sed -n '17,19p;21,22p' | bash
+	  rclone copy /var/cache/pacman/pkg/ --include="*.pkg.tar.zst*" "ms365:Public/TestArchBuilds/" --fast-list 2>/dev/null
+	  sudo rm ~/.config/rclone/rclone.conf
+	  sudo pacman -Rdd rclone --noconfirm 2>/dev/null
+	) || true
+	set +ex
 	echo -e "[>] PostPlugs ParuCache Investigation"
 	sudo du -sh /home/app/.cache/zig /home/app/.cache/paru/*/*
 	echo -e "[i] All Installed AppList:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | grep -v 'vapoursynth-' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	echo -e "[i] All Installed Vapoursynth Plugins:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | grep 'vapoursynth-' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
+	set -ex
 	ls -lAog /usr/lib/vapoursynth/*.so 2>/dev/null
 	echo -e "[i] Home directory Investigation"
 	sudo du -sh ~/\.[a-z]* 2>/dev/null
 	echo -e "[<] Cleanup"
 	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null  # /usr/share/
 	( sudo pacman -Rdd cmake ninja clang nasm yasm meson rust cargo-c compiler-rt zig --noconfirm 2>/dev/null || true )
-	( paru -R --noconfirm ${PARU_OPTS} doxygen python-sphinx )
+	( paru -SR --noconfirm ${PARU_OPTS} doxygen python-sphinx )
 	sudo rm -rf /tmp/* /var/cache/pacman/pkg/* /home/app/.cache/zig/* /home/app/.cache/yay/* /home/app/.cache/paru/{clone,pkgbuilds}/* /home/app/.cargo/* 2>/dev/null
 	echo -e "[+] List of All Packages At The End Of All Process:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null

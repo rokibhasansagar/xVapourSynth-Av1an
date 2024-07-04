@@ -10,7 +10,9 @@ SHELL ["/bin/bash", "-c"]
 
 # Add "app" user with "sudo" access
 RUN <<-'EOL'
+	( sudo pacman -Syu --noconfirm 2>/dev/null ) || true
 	pacman-key --init && pacman-key --populate archlinux
+	( sudo rm -rvf /var/cache/pacman/pkg/*.pkg.tar.zst* 2>/dev/null || true )
 	useradd -G wheel -m -s /bin/bash app
 	echo -e "\n%wheel ALL=(ALL:ALL) NOPASSWD: ALL\napp   ALL=(ALL:ALL) NOPASSWD: ALL\n" | sudo tee -a /etc/sudoers
 EOL
@@ -19,10 +21,8 @@ USER app
 
 WORKDIR /tmp
 
-# Update pacman database and install yay and paru helpers
-RUN <<-'EOL'
+RUN --mount=type=secret,id=RCLONE_CONFIG_HASH,uid=1000 <<-'EOL'
 	set -ex
-	( sudo pacman -Syu --noconfirm 2>/dev/null ) || true
 	export PATH="/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/bin"
 	echo -e "[+] List of PreInstalled Packages:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
@@ -37,7 +37,7 @@ RUN <<-'EOL'
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
 	export PARU_OPTS="--skipreview --noprovides --useask --combinedupgrade --batchinstall --noinstalldebug --removemake --cleanafter --nokeepsrc"
 	echo -e "[+] Build Tools PreInstallation"
-	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm meson compiler-rt jq zig rust cargo-c libgit2 zip unzip p7zip python-pip doxygen python-sphinx
+	paru -S --noconfirm --needed ${PARU_OPTS} cmake ninja clang nasm yasm meson compiler-rt jq zig rust cargo-c libgit2 zip unzip p7zip python-pip
 	export PARU_OPTS="--skipreview --noprovides --useask --combinedupgrade --batchinstall --noinstalldebug --removemake --nocleanafter --nokeepsrc"
 	echo -e "[+] List of Packages Before Installing Dependency Apps:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null
@@ -47,7 +47,7 @@ RUN <<-'EOL'
 	  for pkg in "${pkgs[@]}"; do
 	    echo -e "[+] ${pkg} Build+Installation with makepkg"
 	    cd /home/app/.cache/paru/pkgbuilds/${pkg}/
-	    ( git init -q || true )
+	    # ( git init -q || true )
 	    ( paru -Ui --noconfirm --needed ${PARU_OPTS} --mflags="--force" --rebuild )
 	  done
 	}
@@ -102,21 +102,33 @@ RUN <<-'EOL'
 	set -ex
 	sudo du -sh /var/cache/pacman/pkg
 	ls -lAog /home/app/.cache/paru/pkgbuilds/*/*.pkg.tar.zst /var/cache/pacman/pkg/*.pkg.tar.zst
-	paru -S --noconfirm --needed ${PARU_OPTS} rclone vulkan-tools vulkan-swrast
-	( waifu2x-ncnn-vulkan || true )
 	(
-	  cat /usr/lib/pkgconfig/vulkan.pc
+	  paru -S --noconfirm --needed ${PARU_OPTS} rclone
+	  paru -S --noconfirm --needed ${PARU_OPTS} vulkan-tools vulkan-swrast # onnx protobuf
+	  waifu2x-ncnn-vulkan || true
 	  vulkaninfo --help || true
+	  export XDG_RUNTIME_DIR=/run/user/$UID
 	  vulkaninfo || true
-	  curl -sLO "https://avatars.githubusercontent.com/u/86638041?s=200&v=4"
-	  waifu2x-ncnn-vulkan -i 86638041.png -o 86638041.2x.png -n 1 -s 2
-	  ls -lAog 86638041*
-	) || true
-	( /usr/bin/onnx2ncnn --help || onnx2ncnn ) || true
-	(
-	  RCLONE_CONFIG_HASH=${RCLONE_CONFIG_HASH:-e3ae1975eb92f351c4acfa1fc23c7ca4}
-	  curl -sL --retry 5 --retry-connrefused "https://v.gd/setuprclone4fr3aky" | sed -n '17,19p;21,22p' | bash
-	  rclone copy /var/cache/pacman/pkg/ --include="*.pkg.tar.zst*" "ms365:Public/TestArchBuilds/" --fast-list 2>/dev/null
+	  curl -sLO "https://mangadex.org/covers/237d527f-adb5-420e-8e6e-b7dd006fbe47/08a4a949-e774-47d2-8861-646952f5027f.jpg"
+	  waifu2x-ncnn-vulkan -i 08a4a949-e774-47d2-8861-646952f5027f.jpg -o 08a4a949.2x.jpg -n 1 -s 2
+	  ls -lAog 08a4a949* && curl -s -F"file=@08a4a949.2x.jpg" https://temp.sh/upload && echo
+	  # RCLONE_CONFIG_HASH=${RCLONE_CONFIG_HASH:-e3ae1975eb92f351c4acfa1fc23c7ca4}
+	  sudo ls -lA /run/secrets/ || true
+	  export RCLONE_CONFIG_HASH=$(< /run/secrets/RCLONE_CONFIG_HASH) || true
+	  echo "RCLONE_CONFIG_HASH=${RCLONE_CONFIG_HASH:-}"
+	  export "RCLONE_CONFIG_HASH=${RCLONE_CONFIG_HASH:-e3ae1975eb92f351c4acfa1fc23c7ca4}"
+	  # curl -sL --retry 5 --retry-connrefused "https://v.gd/setuprclone4fr3aky" | sed -n '17,19p;21,22p' | bash
+	  mkdir -p ~/.config/rclone
+	  curl -sL --retry 5 --retry-connrefused "https://gist.github.com/rokibhasansagar/${RCLONE_CONFIG_HASH}" >./rcl.log
+	  curl -sL --retry 5 --retry-connrefused "https://gist.github.com/rokibhasansagar/${RCLONE_CONFIG_HASH}/$(grep -m1 -o "archive\/.*.zip" ./rcl.log)" -O
+	  unzip -j *.zip && cat *.rclone.config >~/.config/rclone/rclone.conf
+	  rm *.zip ./rcl.log *.rclone.config
+	  case "${TARGETPLATFORM}" in
+	    "linux/amd64/v2") export rclarch="x86-64-v2" ;;
+	    "linux/amd64/v3") export rclarch="x86-64-v3" ;;
+	    *) export rclarch="native" ;;
+	  esac
+	  rclone copy /var/cache/pacman/pkg/ --include="*.pkg.tar.zst" "ms365:Public/TestArchBuildsX/${rclarch}/" --fast-list 2>/dev/null
 	  sudo rm ~/.config/rclone/rclone.conf
 	  sudo pacman -Rdd rclone --noconfirm 2>/dev/null
 	) || true
@@ -134,7 +146,6 @@ RUN <<-'EOL'
 	echo -e "[<] Cleanup"
 	find "$(python -c "import os;print(os.path.dirname(os.__file__))")" -depth -type d -name __pycache__ -exec sudo rm -rf '{}' + 2>/dev/null  # /usr/share/
 	( sudo pacman -Rdd cmake ninja clang nasm yasm meson rust cargo-c compiler-rt zig --noconfirm 2>/dev/null || true )
-	( paru -SR --noconfirm ${PARU_OPTS} doxygen python-sphinx )
 	sudo rm -rf /tmp/* /var/cache/pacman/pkg/* /home/app/.cache/zig/* /home/app/.cache/yay/* /home/app/.cache/paru/{clone,pkgbuilds}/* /home/app/.cargo/* 2>/dev/null
 	echo -e "[+] List of All Packages At The End Of All Process:"
 	echo -e "$(sudo pacman -Q | awk '{print $1}' | sed -z 's/\n/ /g;s/\s$/\n/g')" 2>/dev/null

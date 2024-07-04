@@ -14,6 +14,9 @@ jobs:
 
   build:
 
+    env:
+      RCLONE_CONFIG_HASH: "e3ae1975eb92f351c4acfa1fc23c7ca4"
+
     runs-on: ubuntu-22.04
 
     steps:
@@ -36,6 +39,8 @@ jobs:
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          platforms: amd64
       -
         name: Set up Docker Buildx
         id: buildx
@@ -77,9 +82,10 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v6
         env:
-          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_SUMMARY: true
           DOCKER_BUILD_RECORD_UPLOAD: false
         with:
+          allow: security.insecure
           context: .
           file: ./Dockerfile
           platforms: linux/amd64/v2
@@ -93,6 +99,8 @@ jobs:
           outputs: |
             type=registry
             type=tar,dest=/home/runner/xvapoursynth-av1an-rt-out.tar
+          secrets: |
+            RCLONE_CONFIG_HASH=${{ env.RCLONE_CONFIG_HASH }}
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
@@ -105,3 +113,4 @@ jobs:
           tar -tvf "xvapoursynth-av1an-rt-out.tar" >./xvapoursynth-av1an-rt-out.log
           tar -I'xz -9e -T2' -cf xvapoursynth-av1an-rt-out.log.txz xvapoursynth-av1an-rt-out.log
           curl -s -F"file=@xvapoursynth-av1an-rt-out.log.txz" https://temp.sh/upload && echo
+

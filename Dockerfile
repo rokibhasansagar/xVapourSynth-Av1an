@@ -9,9 +9,11 @@ ARG BUILDPLATFORM
 SHELL ["/bin/bash", "-c"]
 
 # Add "app" user with "sudo" access
-RUN <<-'EOL'
+RUN --mount=type=secret,id=RCLONE_CONFIG_HASH <<-'EOL'
 	( sudo pacman -Syu --noconfirm 2>/dev/null ) || true
 	pacman-key --init && pacman-key --populate archlinux
+	( sudo pacman -S --noconfirm --needed rclone ) || true
+	( cat /run/secrets/RCLONE_CONFIG_HASH ) || true
 	( sudo rm -rvf /var/cache/pacman/pkg/*.pkg.tar.zst* 2>/dev/null || true )
 	useradd -G wheel -m -s /bin/bash app
 	echo -e "\n%wheel ALL=(ALL:ALL) NOPASSWD: ALL\napp   ALL=(ALL:ALL) NOPASSWD: ALL\n" | sudo tee -a /etc/sudoers
@@ -77,7 +79,7 @@ RUN --mount=type=secret,id=RCLONE_CONFIG_HASH,uid=1000 <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg /home/app/.cache/paru/*
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	export pkgs=(waifu2x-ncnn-vulkan-git) && _custPKGBuilder
+	export pkgs=({vapoursynth-plugin-,}waifu2x-ncnn-vulkan-git) && _custPKGBuilder
 	# llvm(17)-libs from Arch for vsakarin is needed now, so skip llvm16-libs
 	export pkgs=(vapoursynth-plugin-{vsakarin,adjust,adaptivegrain}-git) && _custPKGBuilder
 	export silentFlags='-Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough'

@@ -79,9 +79,9 @@ RUN --mount=type=secret,id=RCLONE_CONFIG_HASH,uid=1000 <<-'EOL'
 	sudo du -sh /var/cache/pacman/pkg /home/app/.cache/paru/*
 	ls -lAog /var/cache/pacman/pkg/*.pkg.tar.zst 2>/dev/null
 	echo -e "[+] Plugins Installation Block Starts Here"
-	export pkgs=({vapoursynth-plugin-,}waifu2x-ncnn-vulkan-git) && _custPKGBuilder
 	# llvm(17)-libs from Arch for vsakarin is needed now, Arch llvm-libs is now 18
 	export pkgs=(llvm17-libs vapoursynth-plugin-{vsakarin,adjust,adaptivegrain}-git) && _custPKGBuilder
+	export pkgs=({vapoursynth-plugin-,}waifu2x-ncnn-vulkan-git) && _custPKGBuilder
 	export silentFlags='-Wno-unused-parameter -Wno-deprecated-declarations -Wno-unknown-pragmas -Wno-implicit-fallthrough'
 	cd /tmp && CFLAGS+=" ${silentFlags}" CXXFLAGS+=" ${silentFlags}" paru -S --noconfirm --needed ${PARU_OPTS} onetbb vapoursynth-tools-getnative-git vapoursynth-plugin-{bestsource,bm3dcuda-cpu,eedi3m,havsfunc,imwri,kagefunc,knlmeanscl,muvsfunc,mvtools_sf,neo_f3kdb,neo_fft3dfilter,nlm,retinex,soifunc,ttempsmooth,vsdeband,vsdehalo,vsmasktools,vspyplugin,vstools,znedi3}-git
 	libtool --finish /usr/lib/vapoursynth &>/dev/null

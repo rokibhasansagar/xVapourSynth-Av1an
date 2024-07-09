@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: VapourDocker Builder
 
 on:
   push:
@@ -6,43 +6,50 @@ on:
     paths:
       - 'Dockerfile'
   workflow_dispatch:
-  # schedule:
-    # Runs at 01:00 UTC on Thu and Mon.
-    # - cron: '0 1 * * THU,MON'
+  schedule:
+    # Runs at 02:00 UTC on Saturdays.
+    - cron: '0 2 * * SAT'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
   build:
 
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ['linux/amd64','linux/amd64/v2','linux/amd64/v3']
     env:
+      platform: ${{ matrix.platform }}
+      VapourDockerID: "xvapoursynth-av1an-rt"
       RCLONE_CONFIG_HASH: "e3ae1975eb92f351c4acfa1fc23c7ca4"
 
     runs-on: ubuntu-22.04
 
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: 'main'
-      -
-        name: Minor Disc Cleanup
+      - name: Enable KVM group perms [Experimental]
         run: |
-          docker system prune -a -f
-          sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache /usr/local/share/vcpkg /usr/share/dotnet /opt/ghc
-      -
-        name: Enable KVM group perms
-        run: |
-            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+              | sudo tee /etc/udev/rules.d/99-kvm4all.rules
             sudo udevadm control --reload-rules
             sudo udevadm trigger --name-match=kvm
-      -
-        name: Set up QEMU
+      - name: Minor Disc Cleanup [Optinal]
+        run: |
+          docker system prune -a -f
+          sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache \
+            /usr/local/share/vcpkg /usr/share/dotnet /opt/ghc
+      - name: Set up QEMU [Optional]
         uses: docker/setup-qemu-action@v3
         with:
           platforms: amd64
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -50,36 +57,87 @@ jobs:
           buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 4
-      -
-        name: Inspect builder
+      - name: Inspect builder
         run: |
           echo "Name:      ${{ steps.buildx.outputs.name }}"
           echo "Endpoint:  ${{ steps.buildx.outputs.endpoint }}"
           echo "Status:    ${{ steps.buildx.outputs.status }}"
           echo "Flags:     ${{ steps.buildx.outputs.flags }}"
           echo "Platforms: ${{ steps.buildx.outputs.platforms }}"
-      -
-        name: Login to Docker Hub
+      - name: Login to Docker [Hub]
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Docker Metadata action
-        id: docker_meta
+      - name: Tag Selection and Stalling of Native Image Build
+        run: |
+          # Tag Selection
+          case "${platform}" in
+            'linux/amd64')
+              export headTag="latest" DocExportedTar="${VapourDockerID}"
+              ;;
+            *)
+              export headTag="$(awk -F'/' '{print $2"-"$3}' <<<"${platform}")"
+              export DocExportedTar="${VapourDockerID}-${headTag}"
+              ;;
+          esac
+          echo "DocExportedTar=${DocExportedTar}" >>$GITHUB_ENV
+          echo "headTag=${headTag}" >>$GITHUB_ENV
+          # Stall Native Image Build
+          if [[ ${headTag} == "latest" ]]; then
+            echo -e "[</>] Please Wait 4 Minutes For The Image To Be Built..."
+            for i in $(seq 3 6 52); do
+              sleep ${i} && printf ".."
+            done
+            echo
+          fi
+      - name: Docker Metadata action
+        if: matrix.platform == 'linux/amd64'
+        id: docker_meta_native
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/xvapoursynth-av1an-rt
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.VapourDockerID }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,enable=true,prefix=sha-,format=short
             type=raw,value={{date 'YY.MM.DDDD.HHmm' tz='Asia/Dhaka'}},enable=true
+      - name: Build & Push the Docker image
+        if: matrix.platform == 'linux/amd64'
+        id: docker_build_native
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_SUMMARY: true
+          DOCKER_BUILD_RECORD_UPLOAD: true
+        with:
+          allow: security.insecure
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ env.platform }}
+          push: true
+          provenance: false
+          tags: ${{ steps.docker_meta_native.outputs.tags }}
           labels: |
             maintainer="fr3akyphantom <rokibhasansagar2014@outlook.com>"
             org.opencontainers.image.licenses=MIT
-      -
-        name: Build & Push the Docker image
-        id: docker_build
+          # cache-from: type=registry,ref=archlinux:base-devel
+          # cache-from: type=local,src=/home/runner/${{ env.DocExportedTar }}
+          cache-to: type=local,dest=/home/runner/${{ env.DocExportedTar }}
+          outputs: |
+            type=registry
+            type=tar,dest=/home/runner/${{ env.DocExportedTar }}.tar
+          secrets: |
+            RCLONE_CONFIG_HASH=${{ env.RCLONE_CONFIG_HASH }}
+      - name: Upload DocExportedTar as Artifact
+        if: matrix.platform == 'linux/amd64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: xvapoursynth-av1an-rt
+          path: /home/runner/${{ env.DocExportedTar }}.tar
+          retention-days: 10
+          compression-level: 1
+      - name: Build & Push the Docker image
+        if: matrix.platform != 'linux/amd64'
+        id: docker_build_secondary
         uses: docker/build-push-action@v6
         env:
           DOCKER_BUILD_SUMMARY: true
@@ -88,29 +146,43 @@ jobs:
           allow: security.insecure
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64/v2
+          platforms: ${{ env.platform }}
           push: true
           provenance: false
-          tags: ${{ steps.docker_meta.outputs.tags }}
-          labels: ${{ steps.docker_meta.outputs.labels }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.VapourDockerID }}:${{ env.headTag }}
+          labels: |
+            maintainer="fr3akyphantom <rokibhasansagar2014@outlook.com>"
+            org.opencontainers.image.licenses=MIT
           # cache-from: type=registry,ref=archlinux:base-devel
-          cache-from: type=local,src=/home/runner/xvapoursynth-av1an-rt
-          cache-to: type=local,dest=/home/runner/xvapoursynth-av1an-rt
+          # cache-from: type=local,src=/home/runner/${{ env.DocExportedTar }}
+          cache-to: type=local,dest=/home/runner/${{ env.DocExportedTar }}
           outputs: |
             type=registry
-            type=tar,dest=/home/runner/xvapoursynth-av1an-rt-out.tar
+            type=tar,dest=/home/runner/${{ env.DocExportedTar }}.tar
           secrets: |
             RCLONE_CONFIG_HASH=${{ env.RCLONE_CONFIG_HASH }}
-      -
-        name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
-      -
-        name: Output Details
+      - name: Image digest (Native)
+        if: matrix.platform == 'linux/amd64'
+        run: echo ${{ steps.docker_build_native.outputs.digest }}
+      - name: Image digest (Secondary)
+        if: matrix.platform != 'linux/amd64'
+        run: echo ${{ steps.docker_build_secondary.outputs.digest }}
+      - name: Output Details
         run: |
           cd /home/runner/
-          du -sh xvapoursynth*
-          tree -a -h -L 4 ./xvapoursynth-av1an-rt
-          tar -tvf "xvapoursynth-av1an-rt-out.tar" >./xvapoursynth-av1an-rt-out.log
-          tar -I'xz -9e -T2' -cf xvapoursynth-av1an-rt-out.log.txz xvapoursynth-av1an-rt-out.log
-          curl -s -F"file=@xvapoursynth-av1an-rt-out.log.txz" https://temp.sh/upload && echo
+          du -sh ${DocExportedTar}*
+          tree -a -h -L 4 .
+          tar -tvf ${DocExportedTar}.tar >./${DocExportedTar}.log
+          tar -I'xz -9e -T2' -cf ${DocExportedTar}.log.txz ${DocExportedTar}.log
+          curl -s -F"file=@${DocExportedTar}.log.txz" https://temp.sh/upload && echo
+      - name: Setup Rclone
+        uses: rokibhasansagar/custom_workflows/setup_rclone@main
+        # env:
+        #   RCLONE_CONFIG_HASH: ${{ env.RCLONE_CONFIG_HASH }}
+      - name: Upload /home/runner/${{ env.DocExportedTar }}.tar.gz
+        run: |
+          cd /home/runner/
+          pigz -9 ${DocExportedTar}.tar
+          rclone copy ./${DocExportedTar}.tar.gz "ms365:Public/TestArchBuildsX/" \
+            --fast-list --stats-one-line-date --progress -v
 
